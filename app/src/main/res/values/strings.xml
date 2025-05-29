@@ -1,6 +1,50 @@
 <resources>
     <string name="app_name">Siêu nhắc nhở</string>
+    <string name="title_notes">Ghi chú</string>
+    <string name="title_reminders">Nhắc nhở</string>
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
+    
+    <!-- Các chuỗi khác -->
+    <string name="add_note">Thêm ghi chú</string>
+    <string name="add_reminder">Thêm nhắc nhở</string>
+    <string name="note_title">Tiêu đề</string>
+    <string name="note_content">Nội dung</string>
+    <string name="save">Lưu</string>
+    <string name="cancel">Hủy</string>
+    <string name="delete">Xóa</string>
+    <string name="edit">Sửa</string>
+    <string name="complete">Hoàn thành</string>
+    <string name="reminder_time">Thời gian nhắc</string>
+    <string name="reminder_repeat">Lặp lại</string>
+    <string name="reminder_repeat_interval">Khoảng thời gian lặp (giây)</string>
+    <string name="reminder_repeat_day">Ngày trong tháng</string>
+    <string name="reminder_repeat_time">Giờ nhắc</string>
+    <string name="reminder_type_none">Không lặp lại</string>
+    <string name="reminder_type_interval">Lặp theo khoảng thời gian</string>
+    <string name="reminder_type_solar">Lặp theo ngày dương lịch</string>
+    <string name="reminder_type_lunar">Lặp theo ngày âm lịch</string>
+
+<!--    thiếu-->
+
+        <!-- Các chuỗi hiện có -->
+        <string name="regular_note">Ghi chú thông thường</string>
+        <string name="one_time_reminder">Nhắc nhở một lần</string>
+        <string name="repeating_reminder">Nhắc nhở lặp lại</string>
+        <string name="select_date">Chọn ngày</string>
+        <string name="select_time">Chọn giờ</string>
+        <string name="repeat_type">Loại lặp lại</string>
+        <string name="repeat_interval">Khoảng lặp lại</string>
+        <string name="repeat_solar_monthly">Lặp lại theo tháng dương lịch</string>
+        <string name="repeat_lunar_monthly">Lặp lại theo tháng âm lịch</string>
+        <string name="interval_value">Giá trị khoảng cách</string>
+        <string name="select_day_of_month">Chọn ngày trong tháng</string>
+    <string name="edit_note">Edit Note</string>
+    <string name="delete_note">Delete Note</string>
+    <string name="delete_note_confirm">Xác nhận xóa</string>
+    <string name="edit_reminder">Edit note reminder</string>
+    <string name="delete_reminder">Xóa nhắc nhở</string>
+    <string name="delete_reminder_confirm">Xác nhận xóa</string>
+
 </resources>
