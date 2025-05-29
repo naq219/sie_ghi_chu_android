@@ -85,7 +85,7 @@ class NotesFragment : Fragment() {
 
         // Nếu đang chỉnh sửa ghi chú hiện có
         if (note != null) {
-            dialogBinding.editNoteTitle.setText(note.title)
+            //dialogBinding.editNoteTitle.setText(note.title)
             dialogBinding.editNoteContent.setText(note.content)
             
             // Thiết lập loại ghi chú
@@ -137,13 +137,13 @@ class NotesFragment : Fragment() {
 
         // Xử lý nút Lưu
         dialogBinding.buttonSave.setOnClickListener {
-            val title = dialogBinding.editNoteTitle.text.toString().trim()
+            //val title = dialogBinding.editNoteTitle.text.toString().trim()
             val content = dialogBinding.editNoteContent.text.toString().trim()
             
-            if (title.isEmpty()) {
-                dialogBinding.layoutNoteTitle.error = "Vui lòng nhập tiêu đề"
-                return@setOnClickListener
-            }
+//            if (title.isEmpty()) {
+//                dialogBinding.layoutNoteTitle.error = "Vui lòng nhập tiêu đề"
+//                return@setOnClickListener
+//            }
             
             // Xác định loại ghi chú
             val noteType = when (dialogBinding.radioGroupNoteType.checkedRadioButtonId) {
@@ -155,13 +155,13 @@ class NotesFragment : Fragment() {
             
             // Tạo hoặc cập nhật ghi chú
             val updatedNote = note?.copy(
-                title = title,
+
                 content = content,
                 noteType = noteType,
                 updatedAt = Date()
             ) ?: Note(
                 id = UUID.randomUUID(),
-                title = title,
+                title = "title",
                 content = content,
                 noteType = noteType,
                 status = "active",

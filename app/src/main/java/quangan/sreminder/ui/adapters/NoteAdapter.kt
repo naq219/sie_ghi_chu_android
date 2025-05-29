@@ -1,5 +1,9 @@
 package quangan.sreminder.ui.adapters
 
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.StyleSpan
+import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -53,8 +57,22 @@ class NoteAdapter(
         }
         
         fun bind(note: Note) {
-            binding.textNoteTitle.text = note.title
-            binding.textNoteContent.text = note.content
+            val firstLineBreak = note.content?.indexOf('\n')
+            val firstLine = if (firstLineBreak != -1) firstLineBreak?.let {
+                note.content?.substring(0,
+                    it
+                )
+            } else note.content
+            val spannable = SpannableString(note.content)
+            if (firstLine != null) {
+                spannable.setSpan(
+                    StyleSpan(Typeface.BOLD),
+                    0,
+                    firstLine.length,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+            binding.textNoteContent.text = spannable
             binding.textNoteDate.text = dateFormat.format(note.updatedAt)
         }
         
