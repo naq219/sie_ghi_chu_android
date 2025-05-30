@@ -48,7 +48,8 @@ class NotesFragment : Fragment() {
     private fun setupRecyclerView() {
         noteAdapter = NoteAdapter(
             onItemClick = { note -> showNoteEditDialog(note) },
-            onDeleteClick = { note -> deleteNote(note) }
+            onDeleteClick = { note -> deleteNote(note) },
+            onUpdateNote = { note -> notesViewModel.update(note) }
         )
         binding.recyclerViewNotes.apply {
             layoutManager = LinearLayoutManager(context)

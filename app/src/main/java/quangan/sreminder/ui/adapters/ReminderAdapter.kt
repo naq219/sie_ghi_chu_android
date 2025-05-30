@@ -49,93 +49,40 @@ class ReminderAdapter(
         
         init {
             binding.root.setOnClickListener {
-                val position = bindingAdapterPosition
+                val position = absoluteAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     onItemClick(getItem(position))
-                }
-            }
-            
-            binding.buttonMore.setOnClickListener { view ->
-                val position = bindingAdapterPosition
-                if (position != RecyclerView.NO_POSITION) {
-                    showPopupMenu(view, getItem(position))
-                }
-            }
-            
-            binding.buttonComplete.setOnClickListener {
-                val position = bindingAdapterPosition
-                if (position != RecyclerView.NO_POSITION) {
-                    val note = getItem(position)
-                    val reminders = reminderMap[note.id.toString()] ?: emptyList()
-                    if (reminders.isNotEmpty()) {
-                        onCompleteClick(note, reminders.first())
-                    }
                 }
             }
         }
         
         fun bind(note: Note, reminder: Reminder?) {
-            binding.textReminderTitle.text = note.title
+            // Hiển thị nội dung nhắc nhở
             binding.textReminderContent.text = note.content
             
+            // Hiển thị thông tin phụ (loại nhắc nhở hoặc thông tin khác)
             if (reminder != null) {
-                binding.textReminderTime.text = "Nhắc lúc: ${dateFormat.format(reminder.remindAt)}"
-                
-                // Hiển thị thông tin lặp lại
-                when (reminder.repeatType) {
+                val reminderInfo = when (reminder.repeatType) {
                     "interval" -> {
                         val seconds = reminder.repeatIntervalSeconds ?: 0
-                        val repeatText = when {
-                            seconds < 60 -> "Lặp lại: Mỗi $seconds giây"
-                            seconds < 3600 -> "Lặp lại: Mỗi ${seconds / 60} phút"
-                            seconds < 86400 -> "Lặp lại: Mỗi ${seconds / 3600} giờ"
-                            else -> "Lặp lại: Mỗi ${seconds / 86400} ngày"
+                        when {
+                            seconds < 60 -> "Lặp mỗi $seconds giây"
+                            seconds < 3600 -> "Lặp mỗi ${seconds / 60} phút"
+                            seconds < 86400 -> "Lặp mỗi ${seconds / 3600} giờ"
+                            else -> "Lặp mỗi ${seconds / 86400} ngày"
                         }
-                        binding.textReminderRepeat.text = repeatText
-                        binding.textReminderRepeat.visibility = View.VISIBLE
                     }
-                    "solar_monthly" -> {
-                        binding.textReminderRepeat.text = "Lặp lại: Ngày ${reminder.repeatDay} hàng tháng (dương lịch)"
-                        binding.textReminderRepeat.visibility = View.VISIBLE
-                    }
-                    "lunar_monthly" -> {
-                        binding.textReminderRepeat.text = "Lặp lại: Ngày ${reminder.repeatDay} hàng tháng (âm lịch)"
-                        binding.textReminderRepeat.visibility = View.VISIBLE
-                    }
-                    else -> {
-                        binding.textReminderRepeat.visibility = View.GONE
-                    }
+                    "solar_monthly" -> "Lặp hàng tháng (dương lịch)"
+                    "lunar_monthly" -> "Lặp hàng tháng (âm lịch)"
+                    else -> "Nhắc một lần"
                 }
-                
-                // Hiển thị nút hoàn thành
-                binding.buttonComplete.visibility = if (reminder.isActive) View.VISIBLE else View.GONE
+                binding.textReminderTime.text = reminderInfo
             } else {
-                binding.textReminderTime.text = "Không có thông tin nhắc nhở"
-                binding.textReminderRepeat.visibility = View.GONE
-                binding.buttonComplete.visibility = View.GONE
+                binding.textReminderTime.text = "Nhắc nhở"
             }
         }
         
-        private fun showPopupMenu(view: View, note: Note) {
-            val popup = PopupMenu(view.context, view)
-            popup.menuInflater.inflate(R.menu.menu_reminder_options, popup.menu)
-            
-            popup.setOnMenuItemClickListener { menuItem ->
-                when (menuItem.itemId) {
-                    R.id.action_edit -> {
-                        onItemClick(note)
-                        true
-                    }
-                    R.id.action_delete -> {
-                        onDeleteClick(note)
-                        true
-                    }
-                    else -> false
-                }
-            }
-            
-            popup.show()
-        }
+
     }
 
     class ReminderDiffCallback : DiffUtil.ItemCallback<Note>() {
