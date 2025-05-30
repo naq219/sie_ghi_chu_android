@@ -42,27 +42,20 @@ class NoteAdapter(
         
         init {
             binding.root.setOnClickListener {
-                val position = bindingAdapterPosition
+                val position = absoluteAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     onItemClick(getItem(position))
-                }
-            }
-            
-            binding.buttonMore.setOnClickListener { view ->
-                val position = bindingAdapterPosition
-                if (position != RecyclerView.NO_POSITION) {
-                    showPopupMenu(view, getItem(position))
                 }
             }
         }
         
         fun bind(note: Note) {
+            // Hiển thị nội dung ghi chú với dòng đầu in đậm
             val firstLineBreak = note.content?.indexOf('\n')
             val firstLine = if (firstLineBreak != -1) firstLineBreak?.let {
-                note.content?.substring(0,
-                    it
-                )
+                note.content?.substring(0, it)
             } else note.content
+            
             val spannable = SpannableString(note.content)
             if (firstLine != null) {
                 spannable.setSpan(
@@ -73,29 +66,12 @@ class NoteAdapter(
                 )
             }
             binding.textNoteContent.text = spannable
-            binding.textNoteDate.text = dateFormat.format(note.updatedAt)
+            
+            // Hiển thị thông tin phụ (có thể là loại ghi chú hoặc thông tin khác)
+
         }
         
-        private fun showPopupMenu(view: View, note: Note) {
-            val popup = PopupMenu(view.context, view)
-            popup.menuInflater.inflate(R.menu.menu_note_options, popup.menu)
-            
-            popup.setOnMenuItemClickListener { menuItem ->
-                when (menuItem.itemId) {
-                    R.id.action_edit -> {
-                        onItemClick(note)
-                        true
-                    }
-                    R.id.action_delete -> {
-                        onDeleteClick(note)
-                        true
-                    }
-                    else -> false
-                }
-            }
-            
-            popup.show()
-        }
+
     }
 
     class NoteDiffCallback : DiffUtil.ItemCallback<Note>() {
