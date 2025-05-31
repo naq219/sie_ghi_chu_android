@@ -3,12 +3,35 @@
     <string name="title_notes">Ghi chú</string>
     <string name="title_reminders">Nhắc nhở</string>
     <string name="title_home">Home</string>
+    <string name="title_settings">Cài đặt</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
+    
+    <!-- Settings strings -->
+    <string name="settings_user_id">ID Người dùng</string>
+    <string name="settings_user_id_hint">Nhập ID duy nhất của bạn</string>
+    <string name="settings_save_user_id">Lưu ID</string>
+    <string name="settings_backup">Sao lưu dữ liệu</string>
+    <string name="settings_restore">Khôi phục dữ liệu</string>
+    <string name="settings_create_shortcut">Tạo shortcut</string>
+    <string name="settings_backup_restore_title">Sao lưu &amp; Khôi phục</string>
+    <string name="settings_shortcut_title">Shortcut</string>
+    <string name="settings_user_id_saved">ID người dùng đã được lưu</string>
+    <string name="settings_backup_success">Sao lưu thành công</string>
+    <string name="settings_backup_failed">Sao lưu thất bại</string>
+    <string name="settings_restore_success">Khôi phục thành công</string>
+    <string name="settings_restore_failed">Khôi phục thất bại</string>
+    <string name="settings_shortcut_created">Shortcut đã được tạo</string>
+    <string name="settings_shortcut_failed">Tạo shortcut thất bại</string>
+    <string name="settings_enter_user_id">Vui lòng nhập ID người dùng</string>
+    <string name="shortcut_create_note">Tạo ghi chú</string>
+    <string name="shortcut_create_note_desc">Tạo ghi chú nhanh</string>
     
     <!-- Các chuỗi khác -->
     <string name="add_note">Thêm ghi chú</string>
     <string name="add_reminder">Thêm nhắc nhở</string>
+    <string name="edit_note">Chỉnh sửa ghi chú</string>
+    <string name="edit_reminder">Chỉnh sửa nhắc nhở</string>
     <string name="note_title">Tiêu đề</string>
     <string name="note_content">Nội dung</string>
     <string name="save">Lưu</string>
@@ -40,11 +63,11 @@
         <string name="repeat_lunar_monthly">Lặp lại theo tháng âm lịch</string>
         <string name="interval_value">Giá trị khoảng cách</string>
         <string name="select_day_of_month">Chọn ngày trong tháng</string>
-    <string name="edit_note">Edit Note</string>
     <string name="delete_note">Delete Note</string>
     <string name="delete_note_confirm">Xác nhận xóa</string>
-    <string name="edit_reminder">Edit note reminder</string>
     <string name="delete_reminder">Xóa nhắc nhở</string>
     <string name="delete_reminder_confirm">Xác nhận xóa</string>
+    <string name="create_note">Tạo note</string>
+    <string name="create_new_note">Tạo note mới</string>
 
 </resources>

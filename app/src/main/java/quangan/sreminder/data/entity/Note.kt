@@ -2,6 +2,7 @@ package quangan.sreminder.data.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.io.Serializable
 import java.util.Date
 import java.util.UUID
 
@@ -20,4 +21,4 @@ data class Note(
     val status: String = "active",
     val createdAt: Date = Date(),
     val updatedAt: Date = Date()
-)
+) : Serializable

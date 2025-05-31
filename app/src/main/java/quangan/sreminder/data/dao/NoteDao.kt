@@ -18,6 +18,9 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE noteType IN (2, 3) ORDER BY createdAt DESC")
     fun getAllReminderNotes(): LiveData<List<Note>>
     
+    @Query("SELECT * FROM notes ORDER BY createdAt DESC")
+    suspend fun getAllNotes(): List<Note>
+    
     @Query("SELECT * FROM notes WHERE id = :id")
     suspend fun getNoteById(id: UUID): Note?
     
@@ -35,4 +38,7 @@ interface NoteDao {
     
     @Query("DELETE FROM notes")
     suspend fun deleteAll()
+    
+    @Query("DELETE FROM notes")
+    suspend fun deleteAllNotes()
 }

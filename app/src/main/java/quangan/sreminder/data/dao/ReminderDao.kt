@@ -16,6 +16,9 @@ interface ReminderDao {
     @Query("SELECT * FROM reminders WHERE noteId = :noteId")
     fun getRemindersByNoteId(noteId: UUID): LiveData<List<Reminder>>
     
+    @Query("SELECT * FROM reminders ORDER BY remindAt DESC")
+    suspend fun getAllReminders(): List<Reminder>
+    
     @Query("SELECT * FROM reminders WHERE remindAt <= :date AND isActive = 1")
     suspend fun getDueReminders(date: Date): List<Reminder>
     
@@ -39,4 +42,7 @@ interface ReminderDao {
     
     @Query("DELETE FROM reminders")
     suspend fun deleteAll()
+    
+    @Query("DELETE FROM reminders")
+    suspend fun deleteAllReminders()
 }
