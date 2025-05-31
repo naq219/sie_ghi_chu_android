@@ -2,8 +2,10 @@ package quangan.sreminder.ui.notes
 
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
@@ -62,6 +64,13 @@ class AddNoteDialog : DialogFragment() {
             .create()
         
         setupDialog()
+        
+        // Hiển thị bàn phím tự động khi dialog mở
+        alertDialog.setOnShowListener {
+            binding.editNoteContent.requestFocus()
+            val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(binding.editNoteContent, InputMethodManager.SHOW_IMPLICIT)
+        }
         
         return alertDialog
     }
@@ -181,6 +190,16 @@ class AddNoteDialog : DialogFragment() {
         }
         
         dismiss()
+    }
+    
+    // Phương thức để MainActivity gọi khi cần tự động lưu ghi chú
+    fun saveNoteFromActivity() {
+        val content = binding.editNoteContent.text.toString().trim()
+        
+        // Chỉ lưu nếu có nội dung
+        if (content.isNotEmpty()) {
+            saveNote()
+        }
     }
     
     private fun createReminder(note: Note) {

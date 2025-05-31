@@ -51,6 +51,10 @@ class SettingsFragment : Fragment() {
         // Load user ID từ SharedPreferences
         val savedUserId = sharedPreferences.getString("user_id", "")
         binding.editUserId.setText(savedUserId)
+        
+        // Load GitHub token từ SharedPreferences
+        val savedGithubToken = sharedPreferences.getString("github_token", "")
+        binding.editGithubToken.setText(savedGithubToken)
     }
     
     private fun setupClickListeners() {
@@ -62,6 +66,17 @@ class SettingsFragment : Fragment() {
                 Toast.makeText(context, "Đã lưu User ID: $userId", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(context, "Vui lòng nhập User ID", Toast.LENGTH_SHORT).show()
+            }
+        }
+        
+        // Lưu GitHub Token
+        binding.btnSaveGithubToken.setOnClickListener {
+            val githubToken = binding.editGithubToken.text.toString().trim()
+            if (githubToken.isNotEmpty()) {
+                sharedPreferences.edit().putString("github_token", githubToken).apply()
+                Toast.makeText(context, "Đã lưu GitHub Token thành công", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "Vui lòng nhập GitHub Token", Toast.LENGTH_SHORT).show()
             }
         }
         

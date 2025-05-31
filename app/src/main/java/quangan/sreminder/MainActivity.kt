@@ -11,6 +11,7 @@ import androidx.navigation.ui.setupWithNavController
 import quangan.sreminder.data.DemoDataGenerator
 import quangan.sreminder.databinding.ActivityMainBinding
 import quangan.sreminder.ui.notes.AddNoteDialog
+import androidx.fragment.app.Fragment
 
 class MainActivity : AppCompatActivity() {
 
@@ -49,5 +50,20 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         checkShortcutIntent()
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        // Tự động lưu ghi chú khi người dùng bấm nút home hoặc thoát ứng dụng
+        saveCurrentNoteIfExists()
+    }
+    
+    private fun saveCurrentNoteIfExists() {
+        // Tìm dialog AddNoteDialog đang mở và lưu ghi chú
+        val addNoteDialog = supportFragmentManager.findFragmentByTag("AddNoteDialog") as? AddNoteDialog
+        addNoteDialog?.let {
+            // Gọi phương thức lưu ghi chú nếu dialog đang mở
+            it.saveNoteFromActivity()
+        }
     }
 }
