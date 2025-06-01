@@ -57,8 +57,16 @@ class NoteAdapter(
                 if (position != RecyclerView.NO_POSITION && !isEditing) {
                     val currentTime = System.currentTimeMillis()
                     if (currentTime - lastClickTime < doubleClickDelay) {
-                        // Double click - vào edit mode
-                        enterEditMode(getItem(position))
+                        // Double click - kiểm tra số dòng để quyết định edit mode
+                        val note = getItem(position)
+                        val lineCount = note.content?.split('\n')?.size ?: 0
+                        if (lineCount > 7) {
+                            // Nếu nhiều hơn 7 dòng, hiển thị dialog edit
+                            onItemClick(note)
+                        } else {
+                            // Nếu ít hơn hoặc bằng 7 dòng, vào edit mode inline
+                            enterEditMode(note)
+                        }
                     } else {
                         // Single click - toggle hiển thị
                         toggleTextDisplay()
@@ -133,6 +141,9 @@ class NoteAdapter(
             binding.editNoteContent.visibility = View.GONE
             binding.layoutEditButtons.visibility = View.GONE
             binding.textNoteContent.visibility = View.VISIBLE
+            
+            // Kiểm tra số dòng trong note
+            val lineCount = note.content?.split('\n')?.size ?: 0
             
             // Thiết lập hiển thị mặc định (ngắn)
             binding.textNoteContent.maxLines = 2

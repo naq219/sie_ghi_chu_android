@@ -55,8 +55,8 @@ class AddNoteDialog : DialogFragment() {
             notesViewModel = ViewModelProvider(requireActivity()).get(NotesViewModel::class.java)
         }
         
-        // Tạo dialog full màn hình không có title
-        val dialog = Dialog(requireContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+        // Tạo dialog full màn hình không có title với theme sáng
+        val dialog = Dialog(requireContext(), android.R.style.Theme_Light_NoTitleBar_Fullscreen)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         dialog.setContentView(binding.root)
         
