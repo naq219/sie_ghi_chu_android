@@ -10,12 +10,17 @@ import android.widget.RadioGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import quangan.sreminder.R
 import quangan.sreminder.data.entity.Note
 import quangan.sreminder.data.entity.Reminder
 import quangan.sreminder.databinding.DialogNoteEditBinding
 import quangan.sreminder.databinding.FragmentNotesBinding
 import quangan.sreminder.ui.adapters.NoteAdapter
+import quangan.sreminder.ui.notes.AddNoteDialog
+import quangan.sreminder.MainActivity
 import java.util.Calendar
 import java.util.Date
 import java.util.UUID
@@ -55,6 +60,56 @@ class NotesFragment : Fragment() {
             layoutManager = LinearLayoutManager(context)
             adapter = noteAdapter
         }
+        
+        // Thêm ItemTouchHelper cho swipe gestures
+        val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+            0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean = false
+            
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.absoluteAdapterPosition
+                val note = noteAdapter.currentList[position]
+                
+                when (direction) {
+                    ItemTouchHelper.LEFT -> {
+                        // Swipe left - toggle completion status
+                        val updatedNote = note.copy(
+                            status = if (note.status == "completed") "active" else "completed",
+                            updatedAt = Date()
+                        )
+                        notesViewModel.update(updatedNote)
+                        
+                        val message = if (updatedNote.status == "completed") 
+                            "Ghi chú đã được đánh dấu hoàn thành" 
+                        else 
+                            "Ghi chú đã được đánh dấu chưa hoàn thành"
+                            
+                        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                            .setAction("Hoàn tác") {
+                                notesViewModel.update(note)
+                            }
+                            .show()
+                    }
+                    ItemTouchHelper.RIGHT -> {
+                        // Swipe right - delete
+                        notesViewModel.delete(note)
+                        
+                        Snackbar.make(binding.root, "Ghi chú đã được xóa", Snackbar.LENGTH_LONG)
+                            .setAction("Hoàn tác") {
+                                notesViewModel.insert(note)
+                            }
+                            .show()
+                    }
+                }
+            }
+        })
+        
+        itemTouchHelper.attachToRecyclerView(binding.recyclerViewNotes)
     }
 
     private fun setupObservers() {
@@ -66,7 +121,8 @@ class NotesFragment : Fragment() {
 
     private fun setupListeners() {
         binding.fabAddNote.setOnClickListener {
-            showNoteEditDialog(null)
+            // Sử dụng MainActivity để tạo note mới, đảm bảo auto-save hoạt động
+            (activity as? MainActivity)?.showAddNoteDialog()
         }
     }
 

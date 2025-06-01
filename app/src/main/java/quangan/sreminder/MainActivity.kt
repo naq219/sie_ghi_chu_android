@@ -40,10 +40,16 @@ class MainActivity : AppCompatActivity() {
     
     private fun checkShortcutIntent() {
         if (intent?.action == "CREATE_NOTE_SHORTCUT") {
-            // Hiển thị dialog tạo ghi chú
+            // Hiển thị dialog tạo ghi chú từ shortcut
             val addNoteDialog = AddNoteDialog.newInstance(null, useRemindersViewModel = false)
             addNoteDialog.show(supportFragmentManager, "AddNoteDialog")
         }
+    }
+    
+    // Phương thức public để các fragment có thể gọi khi tạo note từ home screen
+    fun showAddNoteDialog() {
+        val addNoteDialog = AddNoteDialog.newInstance(null, useRemindersViewModel = false)
+        addNoteDialog.show(supportFragmentManager, "AddNoteDialog")
     }
     
     override fun onNewIntent(intent: Intent?) {
