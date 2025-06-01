@@ -5,8 +5,11 @@ import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
+import android.view.Window
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import quangan.sreminder.R
@@ -52,27 +55,27 @@ class AddNoteDialog : DialogFragment() {
             notesViewModel = ViewModelProvider(requireActivity()).get(NotesViewModel::class.java)
         }
         
-        val title = if (editingNote == null) {
-            if (useRemindersViewModel) R.string.add_reminder else R.string.add_note
-        } else {
-            if (useRemindersViewModel) R.string.edit_reminder else R.string.edit_note
-        }
+        // Tạo dialog full màn hình không có title
+        val dialog = Dialog(requireContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(binding.root)
         
-        val alertDialog = AlertDialog.Builder(requireContext())
-            .setTitle(title)
-            .setView(binding.root)
-            .create()
+        // Thiết lập layout params để full màn hình
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        )
         
         setupDialog()
         
         // Hiển thị bàn phím tự động khi dialog mở
-        alertDialog.setOnShowListener {
+        dialog.setOnShowListener {
             binding.editNoteContent.requestFocus()
             val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.showSoftInput(binding.editNoteContent, InputMethodManager.SHOW_IMPLICIT)
         }
         
-        return alertDialog
+        return dialog
     }
     
     private fun setupDialog() {
@@ -131,6 +134,19 @@ class AddNoteDialog : DialogFragment() {
         binding.buttonCancel.setOnClickListener {
             dismiss()
         }
+        
+        // Xử lý nút đóng trên toolbar
+        binding.btnCloseDialog.setOnClickListener {
+            dismiss()
+        }
+        
+        // Xử lý nút lưu trên toolbar
+        binding.btnSaveDialog.setOnClickListener {
+            saveNote()
+        }
+        
+        // Cập nhật title dựa trên chế độ
+        binding.textDialogTitle.text = if (editingNote != null) "Chỉnh sửa ghi chú" else "Thêm ghi chú"
     }
     
     private fun saveNote() {
@@ -199,6 +215,8 @@ class AddNoteDialog : DialogFragment() {
         // Chỉ lưu nếu có nội dung
         if (content.isNotEmpty()) {
             saveNote()
+            // Hiển thị toast thông báo auto-save thành công
+            Toast.makeText(requireContext(), "Ghi chú đã được tự động lưu", Toast.LENGTH_SHORT).show()
         }
     }
     

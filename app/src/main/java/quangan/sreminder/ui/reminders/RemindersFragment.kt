@@ -57,7 +57,7 @@ class RemindersFragment : Fragment() {
             adapter = reminderAdapter
         }
         
-        // Thêm ItemTouchHelper cho swipe gestures
+        // Thêm ItemTouchHelper cho swipe gestures với ngưỡng swipe cao hơn
         val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
             0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
         ) {
@@ -66,6 +66,16 @@ class RemindersFragment : Fragment() {
                 viewHolder: RecyclerView.ViewHolder,
                 target: RecyclerView.ViewHolder
             ): Boolean = false
+            
+            override fun getSwipeThreshold(viewHolder: RecyclerView.ViewHolder): Float {
+                // Tăng ngưỡng swipe từ 0.5 (mặc định) lên 0.7 để tránh nhầm lẫn
+                return 0.7f
+            }
+            
+            override fun getSwipeEscapeVelocity(defaultValue: Float): Float {
+                // Tăng vận tốc cần thiết để kích hoạt swipe
+                return defaultValue * 2.0f
+            }
             
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.absoluteAdapterPosition
