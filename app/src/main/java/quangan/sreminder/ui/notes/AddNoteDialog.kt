@@ -20,6 +20,7 @@ import quangan.sreminder.data.entity.Reminder
 import quangan.sreminder.databinding.DialogNoteEditBinding
 import quangan.sreminder.ui.notes.NotesViewModel
 import quangan.sreminder.ui.reminders.RemindersViewModel
+import quangan.sreminder.utils.LunarCalendarUtils
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -101,6 +102,21 @@ class AddNoteDialog : DialogFragment() {
             binding.radioRegularNote.isChecked = true
         }
         
+        // Mặc định chọn lịch dương
+        binding.radioSolarCalendar.isChecked = true
+        
+        // Khởi tạo ngày giờ mặc định
+        selectedDate = Calendar.getInstance()
+        selectedTime = Calendar.getInstance()
+        
+        // Cập nhật hiển thị ngày giờ ban đầu
+        updateDateTimeDisplay()
+        
+        // Xử lý thay đổi loại lịch
+        binding.radioGroupCalendarType.setOnCheckedChangeListener { _, _ ->
+            updateDateTimeDisplay()
+        }
+        
         // Xử lý nút chọn ngày
         binding.buttonDate.setOnClickListener {
             showDatePicker()
@@ -132,12 +148,7 @@ class AddNoteDialog : DialogFragment() {
                 R.id.radio_interval_hours_minutes -> {
                     binding.layoutHoursMinutesSettings.visibility = View.VISIBLE
                 }
-                R.id.radio_multiple_days_week -> {
-                    binding.layoutWeekdaysSettings.visibility = View.VISIBLE
-                }
-                R.id.radio_monthly, R.id.radio_yearly -> {
-                    binding.layoutMonthlySettings.visibility = View.VISIBLE
-                }
+                // Hằng tháng và hằng năm sẽ dựa vào ngày giờ được chọn, không cần cài đặt thêm
                 // Các tùy chọn khác (hằng ngày, hằng tuần) không cần cài đặt thêm
             }
         }
@@ -269,7 +280,14 @@ class AddNoteDialog : DialogFragment() {
         val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
         
-        val dateText = if (selectedDate != null) dateFormat.format(selectedDate!!.time) else "Chọn ngày"
+        val dateText = if (selectedDate != null) {
+            if (binding.radioLunarCalendar.isChecked) {
+                LunarCalendarUtils.formatDateWithLunar(selectedDate!!.time)
+            } else {
+                dateFormat.format(selectedDate!!.time)
+            }
+        } else "Chọn ngày"
+        
         val timeText = if (selectedTime != null) timeFormat.format(selectedTime!!.time) else "Chọn giờ"
         
         binding.textSelectedDatetime.text = "$dateText - $timeText"
@@ -288,7 +306,77 @@ class AddNoteDialog : DialogFragment() {
     }
     
     private fun createReminder(note: Note) {
-        // Logic tạo reminder sẽ được implement sau
-        // Hiện tại chỉ tạo ghi chú cơ bản
+        if (selectedDate == null || selectedTime == null) {
+            Toast.makeText(requireContext(), "Vui lòng chọn ngày và giờ nhắc nhở", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Kết hợp ngày và giờ đã chọn
+        val reminderCalendar = Calendar.getInstance().apply {
+            time = selectedDate!!.time
+            set(Calendar.HOUR_OF_DAY, selectedTime!!.get(Calendar.HOUR_OF_DAY))
+            set(Calendar.MINUTE, selectedTime!!.get(Calendar.MINUTE))
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        
+        // Xác định loại lặp lại
+        val repeatType = when (binding.radioGroupRepeatType.checkedRadioButtonId) {
+            R.id.radio_interval_hours_minutes -> "interval"
+            R.id.radio_daily -> "daily"
+            R.id.radio_weekly -> "weekly"
+            R.id.radio_monthly -> {
+                if (binding.radioLunarCalendar.isChecked) "lunar_monthly" else "solar_monthly"
+            }
+            R.id.radio_yearly -> {
+                if (binding.radioLunarCalendar.isChecked) "lunar_yearly" else "solar_yearly"
+            }
+            else -> null
+        }
+        
+        // Tính interval cho loại "interval"
+        var intervalSeconds: Long? = null
+        if (repeatType == "interval") {
+            val hours = binding.editHours.text.toString().toLongOrNull() ?: 0
+            val minutes = binding.editMinutes.text.toString().toLongOrNull() ?: 0
+            intervalSeconds = hours * 3600 + minutes * 60
+            
+            if (intervalSeconds <= 0) {
+                Toast.makeText(requireContext(), "Vui lòng nhập khoảng thời gian hợp lệ", Toast.LENGTH_SHORT).show()
+                return
+            }
+        }
+        
+        // Tạo reminder
+        val reminder = Reminder(
+            id = UUID.randomUUID(),
+            noteId = note.id,
+            remindAt = reminderCalendar.time,
+            repeatType = repeatType,
+            repeatIntervalSeconds = intervalSeconds,
+            repeatDay = if (repeatType?.contains("monthly") == true || repeatType?.contains("yearly") == true) {
+                reminderCalendar.get(Calendar.DAY_OF_MONTH)
+            } else null,
+            repeatTime = if (repeatType != null && repeatType != "interval") {
+                String.format("%02d:%02d", 
+                    reminderCalendar.get(Calendar.HOUR_OF_DAY),
+                    reminderCalendar.get(Calendar.MINUTE)
+                )
+            } else null,
+            isActive = true,
+            createdAt = Date(),
+            updatedAt = Date()
+        )
+        
+        // Lưu reminder bằng ViewModel phù hợp
+        if (remindersViewModel != null) {
+            remindersViewModel!!.insertReminder(reminder)
+        } else {
+            // Nếu không có remindersViewModel, tạo một instance tạm thời
+            val tempViewModel = ViewModelProvider(requireActivity()).get(RemindersViewModel::class.java)
+            tempViewModel.insertReminder(reminder)
+        }
+        
+        Toast.makeText(requireContext(), "Đã tạo nhắc nhở thành công", Toast.LENGTH_SHORT).show()
     }
 }

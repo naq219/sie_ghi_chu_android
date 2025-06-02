@@ -37,6 +37,10 @@ class RemindersViewModel(application: Application) : AndroidViewModel(applicatio
     fun insert(reminder: Reminder) = viewModelScope.launch {
         reminderRepository.insert(reminder)
     }
+    
+    fun insertReminder(reminder: Reminder) = viewModelScope.launch {
+        reminderRepository.insert(reminder)
+    }
 
     fun update(note: Note) = viewModelScope.launch {
         noteRepository.update(note)

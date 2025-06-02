@@ -11,6 +11,7 @@ import androidx.navigation.ui.setupWithNavController
 import quangan.sreminder.data.DemoDataGenerator
 import quangan.sreminder.databinding.ActivityMainBinding
 import quangan.sreminder.ui.notes.AddNoteDialog
+import quangan.sreminder.service.ReminderService
 import androidx.fragment.app.Fragment
 
 class MainActivity : AppCompatActivity() {
@@ -33,6 +34,9 @@ class MainActivity : AppCompatActivity() {
         
         // Tạo dữ liệu demo
         DemoDataGenerator(this).generateDemoData()
+        
+        // Khởi động service nhắc nhở
+        ReminderService.startService(this)
         
         // Kiểm tra xem có được mở từ shortcut không để cho hiển thị dialog tạo ghi chú
         checkShortcutIntent()

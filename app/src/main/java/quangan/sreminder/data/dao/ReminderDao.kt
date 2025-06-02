@@ -22,6 +22,9 @@ interface ReminderDao {
     @Query("SELECT * FROM reminders WHERE remindAt <= :date AND isActive = 1")
     suspend fun getDueReminders(date: Date): List<Reminder>
     
+    @Query("SELECT * FROM reminders WHERE isActive = 1")
+    suspend fun getActiveReminders(): List<Reminder>
+    
     @Query("SELECT * FROM reminders WHERE id = :id")
     suspend fun getReminderById(id: UUID): Reminder?
     

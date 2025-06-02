@@ -17,6 +17,10 @@ class ReminderRepository(private val reminderDao: ReminderDao) {
         return reminderDao.getDueReminders(date)
     }
     
+    suspend fun getActiveReminders(): List<Reminder> {
+        return reminderDao.getActiveReminders()
+    }
+    
     suspend fun getReminderById(id: UUID): Reminder? {
         return reminderDao.getReminderById(id)
     }
