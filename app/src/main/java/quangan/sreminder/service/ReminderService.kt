@@ -13,6 +13,7 @@ import quangan.sreminder.R
 import quangan.sreminder.data.AppDatabase
 import quangan.sreminder.data.entity.Reminder
 import quangan.sreminder.data.repository.ReminderRepository
+import quangan.sreminder.data.repository.NoteRepository
 import quangan.sreminder.utils.LunarCalendarUtils
 import java.util.*
 import kotlin.math.abs
@@ -20,6 +21,7 @@ import kotlin.math.abs
 class ReminderService : LifecycleService() {
     
     private lateinit var reminderRepository: ReminderRepository
+    private lateinit var noteRepository: NoteRepository
     private var checkJob: Job? = null
     
     companion object {
@@ -47,6 +49,7 @@ class ReminderService : LifecycleService() {
         
         val database = AppDatabase.getDatabase(this)
         reminderRepository = ReminderRepository(database.reminderDao())
+        noteRepository = NoteRepository(database.noteDao())
         
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createForegroundNotification())
@@ -215,8 +218,12 @@ class ReminderService : LifecycleService() {
         reminderRepository.update(reminder.copy(isActive = false))
     }
     
-    private fun showReminderNotification(reminder: Reminder) {
+    private suspend fun showReminderNotification(reminder: Reminder) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        
+        // Lấy nội dung ghi chú
+        val note = noteRepository.getNoteById(reminder.noteId)
+        val noteContent = note?.content ?: "Đã đến lúc nhắc nhở của bạn!"
         
         // Tạo channel cho thông báo nhắc nhở
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -234,7 +241,7 @@ class ReminderService : LifecycleService() {
         
         val notification = NotificationCompat.Builder(this, "reminder_alerts")
             .setContentTitle("Nhắc nhở")
-            .setContentText("Đã đến lúc nhắc nhở của bạn!")
+            .setContentText(noteContent)
             .setSmallIcon(R.drawable.ic_notification)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
