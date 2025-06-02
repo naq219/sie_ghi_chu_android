@@ -186,60 +186,177 @@
                     android:layout_marginTop="8dp">
 
                     <RadioButton
-                        android:id="@+id/radio_interval"
+                        android:id="@+id/radio_interval_hours_minutes"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:checked="true"
-                        android:text="@string/repeat_interval" />
+                        android:text="X giờ, Y phút" />
 
                     <RadioButton
-                        android:id="@+id/radio_solar_monthly"
+                        android:id="@+id/radio_daily"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/repeat_solar_monthly" />
+                        android:text="Hằng ngày" />
 
                     <RadioButton
-                        android:id="@+id/radio_lunar_monthly"
+                        android:id="@+id/radio_weekly"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/repeat_lunar_monthly" />
+                        android:text="Hằng tuần" />
+
+                    <RadioButton
+                        android:id="@+id/radio_monthly"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Hằng tháng" />
+
+                    <RadioButton
+                        android:id="@+id/radio_multiple_days_week"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Nhiều ngày trong tuần" />
+
+                    <RadioButton
+                        android:id="@+id/radio_yearly"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Hằng năm" />
 
                 </RadioGroup>
 
-                <!-- Interval settings -->
+                <!-- Cài đặt X giờ, Y phút -->
                 <LinearLayout
-                    android:id="@+id/layout_interval_settings"
+                    android:id="@+id/layout_hours_minutes_settings"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:visibility="visible">
 
                     <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/layout_interval_value"
+                        android:id="@+id/layout_hours"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
                         android:layout_weight="1"
-                        android:hint="@string/interval_value">
+                        android:hint="Giờ">
 
                         <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/edit_interval_value"
+                            android:id="@+id/edit_hours"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:inputType="number" />
+                            android:inputType="number"
+                            android:text="0" />
 
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <Spinner
-                        android:id="@+id/spinner_interval_unit"
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/layout_minutes"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                         android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1" />
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="Phút">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/edit_minutes"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:text="10" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>
 
-                <!-- Monthly settings (solar/lunar) -->
+                <!-- Cài đặt nhiều ngày trong tuần -->
+                <LinearLayout
+                    android:id="@+id/layout_weekdays_settings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Chọn các ngày trong tuần:"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal">
+
+                        <CheckBox
+                            android:id="@+id/checkbox_monday"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="T2" />
+
+                        <CheckBox
+                            android:id="@+id/checkbox_tuesday"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="T3" />
+
+                        <CheckBox
+                            android:id="@+id/checkbox_wednesday"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="T4" />
+
+                        <CheckBox
+                            android:id="@+id/checkbox_thursday"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="T5" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <CheckBox
+                            android:id="@+id/checkbox_friday"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="T6" />
+
+                        <CheckBox
+                            android:id="@+id/checkbox_saturday"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="T7" />
+
+                        <CheckBox
+                            android:id="@+id/checkbox_sunday"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="CN" />
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="1dp"
+                            android:layout_weight="4" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Cài đặt ngày trong tháng -->
                 <LinearLayout
                     android:id="@+id/layout_monthly_settings"
                     android:layout_width="match_parent"
@@ -251,7 +368,8 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/select_day_of_month" />
+                        android:text="Chọn ngày trong tháng:"
+                        android:textStyle="bold" />
 
                     <NumberPicker
                         android:id="@+id/number_picker_day"

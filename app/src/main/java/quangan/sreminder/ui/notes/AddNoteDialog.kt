@@ -1,7 +1,9 @@
 package quangan.sreminder.ui.notes
 
 import android.app.AlertDialog
+import android.app.DatePickerDialog
 import android.app.Dialog
+import android.app.TimePickerDialog
 import android.content.Context
 import android.os.Bundle
 import android.view.View
@@ -18,6 +20,7 @@ import quangan.sreminder.data.entity.Reminder
 import quangan.sreminder.databinding.DialogNoteEditBinding
 import quangan.sreminder.ui.notes.NotesViewModel
 import quangan.sreminder.ui.reminders.RemindersViewModel
+import java.text.SimpleDateFormat
 import java.util.*
 
 class AddNoteDialog : DialogFragment() {
@@ -26,6 +29,8 @@ class AddNoteDialog : DialogFragment() {
     private var notesViewModel: NotesViewModel? = null
     private var remindersViewModel: RemindersViewModel? = null
     private var editingNote: Note? = null
+    private var selectedDate: Calendar? = null
+    private var selectedTime: Calendar? = null
     
     companion object {
         private const val ARG_NOTE = "note"
@@ -79,12 +84,6 @@ class AddNoteDialog : DialogFragment() {
     }
     
     private fun setupDialog() {
-        // Thiết lập spinner cho đơn vị thời gian
-        val intervalUnits = arrayOf("Giây", "Phút", "Giờ", "Ngày")
-        val intervalMultipliers = arrayOf(1L, 60L, 3600L, 86400L)
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, intervalUnits)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.spinnerIntervalUnit.adapter = adapter
         
         // Thiết lập dữ liệu nếu đang chỉnh sửa
         editingNote?.let { note ->
@@ -102,6 +101,16 @@ class AddNoteDialog : DialogFragment() {
             binding.radioRegularNote.isChecked = true
         }
         
+        // Xử lý nút chọn ngày
+        binding.buttonDate.setOnClickListener {
+            showDatePicker()
+        }
+        
+        // Xử lý nút chọn giờ
+        binding.buttonTime.setOnClickListener {
+            showTimePicker()
+        }
+        
         // Xử lý hiển thị/ẩn các tùy chọn nhắc nhở dựa trên loại ghi chú
         binding.radioGroupNoteType.setOnCheckedChangeListener { _, checkedId ->
             val showReminderSettings = checkedId == R.id.radio_one_time_reminder || checkedId == R.id.radio_repeating_reminder
@@ -113,11 +122,24 @@ class AddNoteDialog : DialogFragment() {
         
         // Xử lý hiển thị/ẩn các tùy chọn lặp lại dựa trên loại lặp
         binding.radioGroupRepeatType.setOnCheckedChangeListener { _, checkedId ->
-            val showIntervalSettings = checkedId == R.id.radio_interval
-            binding.layoutIntervalSettings.visibility = if (showIntervalSettings) View.VISIBLE else View.GONE
+            // Ẩn tất cả các layout trước
+            binding.layoutHoursMinutesSettings.visibility = View.GONE
+            binding.layoutWeekdaysSettings.visibility = View.GONE
+            binding.layoutMonthlySettings.visibility = View.GONE
             
-            val showMonthlySettings = checkedId == R.id.radio_solar_monthly || checkedId == R.id.radio_lunar_monthly
-            binding.layoutMonthlySettings.visibility = if (showMonthlySettings) View.VISIBLE else View.GONE
+            // Hiển thị layout tương ứng
+            when (checkedId) {
+                R.id.radio_interval_hours_minutes -> {
+                    binding.layoutHoursMinutesSettings.visibility = View.VISIBLE
+                }
+                R.id.radio_multiple_days_week -> {
+                    binding.layoutWeekdaysSettings.visibility = View.VISIBLE
+                }
+                R.id.radio_monthly, R.id.radio_yearly -> {
+                    binding.layoutMonthlySettings.visibility = View.VISIBLE
+                }
+                // Các tùy chọn khác (hằng ngày, hằng tuần) không cần cài đặt thêm
+            }
         }
         
         // Thiết lập NumberPicker cho ngày trong tháng
@@ -206,6 +228,51 @@ class AddNoteDialog : DialogFragment() {
         }
         
         dismiss()
+    }
+    
+    private fun showDatePicker() {
+        val calendar = Calendar.getInstance()
+        val datePickerDialog = DatePickerDialog(
+            requireContext(),
+            { _, year, month, dayOfMonth ->
+                selectedDate = Calendar.getInstance().apply {
+                    set(year, month, dayOfMonth)
+                }
+                updateDateTimeDisplay()
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+        datePickerDialog.show()
+    }
+    
+    private fun showTimePicker() {
+        val calendar = Calendar.getInstance()
+        val timePickerDialog = TimePickerDialog(
+            requireContext(),
+            { _, hourOfDay, minute ->
+                selectedTime = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, hourOfDay)
+                    set(Calendar.MINUTE, minute)
+                }
+                updateDateTimeDisplay()
+            },
+            calendar.get(Calendar.HOUR_OF_DAY),
+            calendar.get(Calendar.MINUTE),
+            true
+        )
+        timePickerDialog.show()
+    }
+    
+    private fun updateDateTimeDisplay() {
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+        
+        val dateText = if (selectedDate != null) dateFormat.format(selectedDate!!.time) else "Chọn ngày"
+        val timeText = if (selectedTime != null) timeFormat.format(selectedTime!!.time) else "Chọn giờ"
+        
+        binding.textSelectedDatetime.text = "$dateText - $timeText"
     }
     
     // Phương thức để MainActivity gọi khi cần tự động lưu ghi chú
