@@ -2,6 +2,9 @@ package quangan.sreminder.ui.settings
 
 import android.content.Intent
 import android.content.SharedPreferences
+import android.os.PowerManager
+import android.provider.Settings
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -55,6 +58,10 @@ class SettingsFragment : Fragment() {
         // Load GitHub token từ SharedPreferences
         val savedGithubToken = sharedPreferences.getString("github_token", "")
         binding.editGithubToken.setText(savedGithubToken)
+
+        // Load ignore battery optimizations setting
+        val ignoreBatteryOptimizations = sharedPreferences.getBoolean("ignore_battery_optimizations", false)
+        binding.switchIgnoreBatteryOptimizations.isChecked = ignoreBatteryOptimizations
     }
     
     private fun setupClickListeners() {
@@ -143,6 +150,21 @@ class SettingsFragment : Fragment() {
                 Toast.makeText(context, "Đã tạo shortcut thành công!", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(context, "Lỗi tạo shortcut: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        binding.switchIgnoreBatteryOptimizations.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean("ignore_battery_optimizations", isChecked).apply()
+            if (isChecked) {
+                val packageName = requireContext().packageName
+                val pm = requireContext().getSystemService(PowerManager::class.java) as PowerManager
+                if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                    val intent = Intent().apply {
+                        action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                        data = Uri.parse("package:$packageName")
+                    }
+                    startActivity(intent)
+                }
             }
         }
     }

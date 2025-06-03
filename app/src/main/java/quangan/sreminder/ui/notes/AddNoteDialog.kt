@@ -198,11 +198,33 @@ class AddNoteDialog : DialogFragment() {
             else -> 1
         }
         
+        // Tính toán repeatInterval cho ghi chú lặp lại
+        var repeatInterval = 0L
+        if (noteType == 3) {
+            val repeatType = binding.radioGroupRepeatType.checkedRadioButtonId
+            if (repeatType == R.id.radio_interval_hours_minutes) {
+                val hoursText = binding.editHours.text.toString().trim()
+                val minutesText = binding.editMinutes.text.toString().trim()
+                
+                val hours = if (hoursText.isNotEmpty()) hoursText.toLongOrNull() ?: 0 else 0
+                val minutes = if (minutesText.isNotEmpty()) minutesText.toLongOrNull() ?: 0 else 0
+                
+                if (hours == 0L && minutes == 0L) {
+                    Toast.makeText(requireContext(), "Vui lòng nhập ít nhất 1 phút hoặc 1 giờ", Toast.LENGTH_SHORT).show()
+                    return
+                }
+                
+                // Chuyển đổi giờ thành phút và cộng với phút
+                repeatInterval = hours * 60 + minutes
+            }
+        }
+        
         val note = if (editingNote != null) {
             // Cập nhật ghi chú hiện có
             editingNote!!.copy(
                 content = content,
                 noteType = noteType,
+                repeatInterval = repeatInterval,
                 updatedAt = Date()
             )
         } else {
@@ -213,6 +235,7 @@ class AddNoteDialog : DialogFragment() {
                 content = content,
                 noteType = noteType,
                 status = "active",
+                repeatInterval = repeatInterval,
                 createdAt = Date(),
                 updatedAt = Date()
             )
@@ -321,8 +344,20 @@ class AddNoteDialog : DialogFragment() {
         }
         
         // Xác định loại lặp lại
-        val repeatType = when (binding.radioGroupRepeatType.checkedRadioButtonId) {
-            R.id.radio_interval_hours_minutes -> "interval"
+        var repeatType = when (binding.radioGroupRepeatType.checkedRadioButtonId) {
+            R.id.radio_interval_hours_minutes -> {
+                // Phân biệt minutely và hourly dựa trên input
+                val hours = binding.editHours.text.toString().toLongOrNull() ?: 0
+                val minutes = binding.editMinutes.text.toString().toLongOrNull() ?: 0
+                
+                if (hours > 0 && minutes > 0) {
+                    "minutely" // Có cả giờ và phút -> dùng minutely
+                } else if (hours > 0) {
+                    "hourly" // Chỉ có giờ -> dùng hourly
+                } else {
+                    "minutely" // Chỉ có phút -> dùng minutely
+                }
+            }
             R.id.radio_daily -> "daily"
             R.id.radio_weekly -> "weekly"
             R.id.radio_monthly -> {
@@ -334,9 +369,9 @@ class AddNoteDialog : DialogFragment() {
             else -> null
         }
         
-        // Tính interval cho loại "interval"
+        // Tính interval cho loại minutely/hourly (để tương thích với code cũ)
         var intervalSeconds: Long? = null
-        if (repeatType == "interval") {
+        if (repeatType == "minutely" || repeatType == "hourly") {
             val hours = binding.editHours.text.toString().toLongOrNull() ?: 0
             val minutes = binding.editMinutes.text.toString().toLongOrNull() ?: 0
             intervalSeconds = hours * 3600 + minutes * 60
@@ -357,7 +392,7 @@ class AddNoteDialog : DialogFragment() {
             repeatDay = if (repeatType?.contains("monthly") == true || repeatType?.contains("yearly") == true) {
                 reminderCalendar.get(Calendar.DAY_OF_MONTH)
             } else null,
-            repeatTime = if (repeatType != null && repeatType != "interval") {
+            repeatTime = if (repeatType != null && repeatType != "minutely" && repeatType != "hourly") {
                 String.format("%02d:%02d", 
                     reminderCalendar.get(Calendar.HOUR_OF_DAY),
                     reminderCalendar.get(Calendar.MINUTE)

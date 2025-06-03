@@ -138,6 +138,38 @@ class ReminderService : LifecycleService() {
                     reminderRepository.insert(nextReminder)
                 }
             }
+            "minutely" -> {
+                // Lấy repeatInterval từ Note entity (tính bằng phút)
+                val note = noteRepository.getNoteById(reminder.noteId)
+                note?.let { n ->
+                    if (n.repeatInterval > 0) {
+                        val nextTime = Date(reminder.remindAt.time + n.repeatInterval * 60 * 1000)
+                        val nextReminder = reminder.copy(
+                            id = UUID.randomUUID(),
+                            remindAt = nextTime,
+                            createdAt = Date(),
+                            updatedAt = Date()
+                        )
+                        reminderRepository.insert(nextReminder)
+                    }
+                }
+            }
+            "hourly" -> {
+                // Lấy repeatInterval từ Note entity (tính bằng phút)
+                val note = noteRepository.getNoteById(reminder.noteId)
+                note?.let { n ->
+                    if (n.repeatInterval > 0) {
+                        val nextTime = Date(reminder.remindAt.time + n.repeatInterval * 60 * 1000)
+                        val nextReminder = reminder.copy(
+                            id = UUID.randomUUID(),
+                            remindAt = nextTime,
+                            createdAt = Date(),
+                            updatedAt = Date()
+                        )
+                        reminderRepository.insert(nextReminder)
+                    }
+                }
+            }
             "daily" -> {
                 val calendar = Calendar.getInstance().apply {
                     time = reminder.remindAt

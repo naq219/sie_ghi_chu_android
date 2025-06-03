@@ -11,7 +11,7 @@ import quangan.sreminder.data.entity.Note
 import quangan.sreminder.data.entity.Reminder
 import quangan.sreminder.data.util.Converters
 
-@Database(entities = [Note::class, Reminder::class], version = 1, exportSchema = false)
+@Database(entities = [Note::class, Reminder::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao

@@ -72,6 +72,32 @@ class ReminderAdapter(
                             else -> "Lặp mỗi ${seconds / 86400} ngày"
                         }
                     }
+                    "minutely" -> {
+                        // Lấy repeatInterval từ Note
+                        val minutes = note.repeatInterval
+                        when {
+                            minutes < 60 -> "Lặp mỗi $minutes phút"
+                            minutes % 60 == 0L -> "Lặp mỗi ${minutes / 60} giờ"
+                            else -> {
+                                val hours = minutes / 60
+                                val remainingMinutes = minutes % 60
+                                "Lặp mỗi ${hours}h${remainingMinutes}p"
+                            }
+                        }
+                    }
+                    "hourly" -> {
+                        // Lấy repeatInterval từ Note
+                        val minutes = note.repeatInterval
+                        when {
+                            minutes < 60 -> "Lặp mỗi $minutes phút"
+                            minutes % 60 == 0L -> "Lặp mỗi ${minutes / 60} giờ"
+                            else -> {
+                                val hours = minutes / 60
+                                val remainingMinutes = minutes % 60
+                                "Lặp mỗi ${hours}h${remainingMinutes}p"
+                            }
+                        }
+                    }
                     "solar_monthly" -> "Lặp hàng tháng (dương lịch)"
                     "lunar_monthly" -> "Lặp hàng tháng (âm lịch)"
                     else -> "Nhắc một lần"

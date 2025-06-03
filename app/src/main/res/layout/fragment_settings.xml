@@ -23,6 +23,7 @@
             android:textSize="24sp"
             android:textStyle="bold" />
 
+
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -111,6 +112,8 @@
 
         </com.google.android.material.card.MaterialCardView>
         <!-- User ID Section -->
+
+
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -185,6 +188,38 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
+                    android:text="Tối ưu hóa pin"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switch_ignore_battery_optimizations"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Bỏ qua tối ưu hóa pin (Giúp nhắc nhở hoạt động ổn định hơn)"
+                    android:textSize="16sp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
                     android:text="GitHub Token"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -228,7 +263,7 @@
         <!-- Backup/Restore Section -->
 
 
-        <!-- Shortcut Section -->
+
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
