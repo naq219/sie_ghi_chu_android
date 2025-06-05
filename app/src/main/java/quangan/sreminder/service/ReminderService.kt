@@ -120,22 +120,23 @@ class ReminderService : LifecycleService() {
     }
     
     private fun shouldTriggerReminder(reminder: Reminder, currentTime: Date): Boolean {
-        val timeDiff = abs(currentTime.time - reminder.remindAt.time)
-        return timeDiff <= CHECK_INTERVAL // Trong khoảng thời gian check
+        // Nếu thời gian hiện tại >= thời gian nhắc nhở thì kích hoạt
+        // Điều này bao gồm cả trường hợp đã "lỡ" thời gian
+        return currentTime.time >= reminder.remindAt.time
     }
     
     private suspend fun createNextReminder(reminder: Reminder) {
+        val currentTime = Date()
         when (reminder.repeatType) {
             "interval" -> {
                 reminder.repeatIntervalSeconds?.let { intervalSeconds ->
-                    val nextTime = Date(reminder.remindAt.time + intervalSeconds * 1000)
-                    val nextReminder = reminder.copy(
-                        id = UUID.randomUUID(),
+                    // Tính thời gian tiếp theo từ thời gian hiện tại
+                    val nextTime = Date(currentTime.time + intervalSeconds * 1000)
+                    val updatedReminder = reminder.copy(
                         remindAt = nextTime,
-                        createdAt = Date(),
                         updatedAt = Date()
                     )
-                    reminderRepository.insert(nextReminder)
+                    reminderRepository.update(updatedReminder)
                 }
             }
             "minutely" -> {
@@ -143,14 +144,13 @@ class ReminderService : LifecycleService() {
                 val note = noteRepository.getNoteById(reminder.noteId)
                 note?.let { n ->
                     if (n.repeatInterval > 0) {
-                        val nextTime = Date(reminder.remindAt.time + n.repeatInterval * 60 * 1000)
-                        val nextReminder = reminder.copy(
-                            id = UUID.randomUUID(),
+                        // Tính thời gian tiếp theo từ thời gian hiện tại
+                        val nextTime = Date(currentTime.time + n.repeatInterval * 60 * 1000)
+                        val updatedReminder = reminder.copy(
                             remindAt = nextTime,
-                            createdAt = Date(),
                             updatedAt = Date()
                         )
-                        reminderRepository.insert(nextReminder)
+                        reminderRepository.update(updatedReminder)
                     }
                 }
             }
@@ -159,95 +159,125 @@ class ReminderService : LifecycleService() {
                 val note = noteRepository.getNoteById(reminder.noteId)
                 note?.let { n ->
                     if (n.repeatInterval > 0) {
-                        val nextTime = Date(reminder.remindAt.time + n.repeatInterval * 60 * 1000)
-                        val nextReminder = reminder.copy(
-                            id = UUID.randomUUID(),
+                        // Tính thời gian tiếp theo từ thời gian hiện tại
+                        val nextTime = Date(currentTime.time + n.repeatInterval * 60 * 1000)
+                        val updatedReminder = reminder.copy(
                             remindAt = nextTime,
-                            createdAt = Date(),
                             updatedAt = Date()
                         )
-                        reminderRepository.insert(nextReminder)
+                        reminderRepository.update(updatedReminder)
                     }
                 }
             }
             "daily" -> {
                 val calendar = Calendar.getInstance().apply {
-                    time = reminder.remindAt
-                    add(Calendar.DAY_OF_MONTH, 1)
+                    time = currentTime
+                    // Giữ nguyên giờ phút giây từ reminder gốc
+                    val originalCalendar = Calendar.getInstance().apply { time = reminder.remindAt }
+                    set(Calendar.HOUR_OF_DAY, originalCalendar.get(Calendar.HOUR_OF_DAY))
+                    set(Calendar.MINUTE, originalCalendar.get(Calendar.MINUTE))
+                    set(Calendar.SECOND, originalCalendar.get(Calendar.SECOND))
+                    set(Calendar.MILLISECOND, originalCalendar.get(Calendar.MILLISECOND))
+                    // Nếu thời gian đã qua trong ngày hôm nay, chuyển sang ngày mai
+                    if (time.before(currentTime)) {
+                        add(Calendar.DAY_OF_MONTH, 1)
+                    }
                 }
-                val nextReminder = reminder.copy(
-                    id = UUID.randomUUID(),
+                val updatedReminder = reminder.copy(
                     remindAt = calendar.time,
-                    createdAt = Date(),
                     updatedAt = Date()
                 )
-                reminderRepository.insert(nextReminder)
+                reminderRepository.update(updatedReminder)
             }
             "weekly" -> {
                 val calendar = Calendar.getInstance().apply {
-                    time = reminder.remindAt
-                    add(Calendar.WEEK_OF_YEAR, 1)
+                    time = currentTime
+                    // Giữ nguyên giờ phút giây từ reminder gốc
+                    val originalCalendar = Calendar.getInstance().apply { time = reminder.remindAt }
+                    set(Calendar.HOUR_OF_DAY, originalCalendar.get(Calendar.HOUR_OF_DAY))
+                    set(Calendar.MINUTE, originalCalendar.get(Calendar.MINUTE))
+                    set(Calendar.SECOND, originalCalendar.get(Calendar.SECOND))
+                    set(Calendar.MILLISECOND, originalCalendar.get(Calendar.MILLISECOND))
+                    // Tìm ngày trong tuần tiếp theo
+                    val targetDayOfWeek = originalCalendar.get(Calendar.DAY_OF_WEEK)
+                    while (get(Calendar.DAY_OF_WEEK) != targetDayOfWeek || time.before(currentTime)) {
+                        add(Calendar.DAY_OF_MONTH, 1)
+                    }
                 }
-                val nextReminder = reminder.copy(
-                    id = UUID.randomUUID(),
+                val updatedReminder = reminder.copy(
                     remindAt = calendar.time,
-                    createdAt = Date(),
                     updatedAt = Date()
                 )
-                reminderRepository.insert(nextReminder)
+                reminderRepository.update(updatedReminder)
             }
             "solar_monthly" -> {
                 val calendar = Calendar.getInstance().apply {
-                    time = reminder.remindAt
-                    add(Calendar.MONTH, 1)
+                    time = currentTime
+                    // Giữ nguyên giờ phút giây từ reminder gốc
+                    val originalCalendar = Calendar.getInstance().apply { time = reminder.remindAt }
+                    set(Calendar.HOUR_OF_DAY, originalCalendar.get(Calendar.HOUR_OF_DAY))
+                    set(Calendar.MINUTE, originalCalendar.get(Calendar.MINUTE))
+                    set(Calendar.SECOND, originalCalendar.get(Calendar.SECOND))
+                    set(Calendar.MILLISECOND, originalCalendar.get(Calendar.MILLISECOND))
+                    // Đặt ngày trong tháng
+                    val targetDay = originalCalendar.get(Calendar.DAY_OF_MONTH)
+                    set(Calendar.DAY_OF_MONTH, minOf(targetDay, getActualMaximum(Calendar.DAY_OF_MONTH)))
+                    // Nếu thời gian đã qua trong tháng này, chuyển sang tháng sau
+                    if (time.before(currentTime)) {
+                        add(Calendar.MONTH, 1)
+                        set(Calendar.DAY_OF_MONTH, minOf(targetDay, getActualMaximum(Calendar.DAY_OF_MONTH)))
+                    }
                 }
-                val nextReminder = reminder.copy(
-                    id = UUID.randomUUID(),
+                val updatedReminder = reminder.copy(
                     remindAt = calendar.time,
-                    createdAt = Date(),
                     updatedAt = Date()
                 )
-                reminderRepository.insert(nextReminder)
+                reminderRepository.update(updatedReminder)
             }
             "lunar_monthly" -> {
-                // Sử dụng LunarCalendarUtils để tính tháng âm tiếp theo
-                val nextLunarDate = LunarCalendarUtils.getNextLunarMonth(reminder.remindAt)
-                val nextReminder = reminder.copy(
-                    id = UUID.randomUUID(),
+                // Sử dụng LunarCalendarUtils để tính tháng âm tiếp theo từ thời gian hiện tại
+                val nextLunarDate = LunarCalendarUtils.getNextLunarMonth(currentTime)
+                val updatedReminder = reminder.copy(
                     remindAt = nextLunarDate,
-                    createdAt = Date(),
                     updatedAt = Date()
                 )
-                reminderRepository.insert(nextReminder)
+                reminderRepository.update(updatedReminder)
             }
             "solar_yearly" -> {
                 val calendar = Calendar.getInstance().apply {
-                    time = reminder.remindAt
-                    add(Calendar.YEAR, 1)
+                    time = currentTime
+                    // Giữ nguyên giờ phút giây từ reminder gốc
+                    val originalCalendar = Calendar.getInstance().apply { time = reminder.remindAt }
+                    set(Calendar.HOUR_OF_DAY, originalCalendar.get(Calendar.HOUR_OF_DAY))
+                    set(Calendar.MINUTE, originalCalendar.get(Calendar.MINUTE))
+                    set(Calendar.SECOND, originalCalendar.get(Calendar.SECOND))
+                    set(Calendar.MILLISECOND, originalCalendar.get(Calendar.MILLISECOND))
+                    // Đặt tháng và ngày
+                    set(Calendar.MONTH, originalCalendar.get(Calendar.MONTH))
+                    val targetDay = originalCalendar.get(Calendar.DAY_OF_MONTH)
+                    set(Calendar.DAY_OF_MONTH, minOf(targetDay, getActualMaximum(Calendar.DAY_OF_MONTH)))
+                    // Nếu thời gian đã qua trong năm này, chuyển sang năm sau
+                    if (time.before(currentTime)) {
+                        add(Calendar.YEAR, 1)
+                        set(Calendar.DAY_OF_MONTH, minOf(targetDay, getActualMaximum(Calendar.DAY_OF_MONTH)))
+                    }
                 }
-                val nextReminder = reminder.copy(
-                    id = UUID.randomUUID(),
+                val updatedReminder = reminder.copy(
                     remindAt = calendar.time,
-                    createdAt = Date(),
                     updatedAt = Date()
                 )
-                reminderRepository.insert(nextReminder)
+                reminderRepository.update(updatedReminder)
             }
             "lunar_yearly" -> {
-                // Sử dụng LunarCalendarUtils để tính năm âm tiếp theo
-                val nextLunarDate = LunarCalendarUtils.getNextLunarYear(reminder.remindAt)
-                val nextReminder = reminder.copy(
-                    id = UUID.randomUUID(),
+                // Sử dụng LunarCalendarUtils để tính năm âm tiếp theo từ thời gian hiện tại
+                val nextLunarDate = LunarCalendarUtils.getNextLunarYear(currentTime)
+                val updatedReminder = reminder.copy(
                     remindAt = nextLunarDate,
-                    createdAt = Date(),
                     updatedAt = Date()
                 )
-                reminderRepository.insert(nextReminder)
+                reminderRepository.update(updatedReminder)
             }
         }
-        
-        // Đánh dấu reminder hiện tại là đã hoàn thành
-        reminderRepository.update(reminder.copy(isActive = false))
     }
     
     private suspend fun showReminderNotification(reminder: Reminder) {
