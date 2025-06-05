@@ -50,7 +50,8 @@ class RemindersFragment : Fragment() {
         reminderAdapter = ReminderAdapter(
             onItemClick = { note -> showNoteEditDialog(note) },
             onDeleteClick = { note -> deleteNote(note) },
-            onCompleteClick = { note, reminder -> completeReminder(note, reminder) }
+            onCompleteClick = { note, reminder -> completeReminder(note, reminder) },
+            onToggleReminderActive = { reminder, isActive -> toggleReminderActive(reminder, isActive) }
         )
         binding.recyclerViewReminders.apply {
             layoutManager = LinearLayoutManager(context)
@@ -149,6 +150,10 @@ class RemindersFragment : Fragment() {
 
     private fun completeReminder(note: Note, reminder: Reminder) {
         remindersViewModel.completeReminder(reminder)
+    }
+    
+    private fun toggleReminderActive(reminder: Reminder, isActive: Boolean) {
+        remindersViewModel.updateReminderActiveStatus(reminder.id, isActive)
     }
 
     override fun onDestroyView() {

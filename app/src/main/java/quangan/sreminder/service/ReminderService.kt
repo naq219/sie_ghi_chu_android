@@ -3,11 +3,13 @@ package quangan.sreminder.service
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import kotlinx.coroutines.*
 import quangan.sreminder.R
 import quangan.sreminder.data.AppDatabase
@@ -22,6 +24,7 @@ class ReminderService : LifecycleService() {
     
     private lateinit var reminderRepository: ReminderRepository
     private lateinit var noteRepository: NoteRepository
+    private lateinit var sharedPreferences: SharedPreferences
     private var checkJob: Job? = null
     
     companion object {
@@ -50,6 +53,7 @@ class ReminderService : LifecycleService() {
         val database = AppDatabase.getDatabase(this)
         reminderRepository = ReminderRepository(database.reminderDao())
         noteRepository = NoteRepository(database.noteDao())
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
         
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createForegroundNotification())
@@ -106,6 +110,12 @@ class ReminderService : LifecycleService() {
     }
     
     private suspend fun checkAndTriggerReminders() {
+        // Kiểm tra cài đặt toàn cục trước khi xử lý nhắc nhở
+        val globalRemindersEnabled = sharedPreferences.getBoolean("global_reminders_enabled", true)
+        if (!globalRemindersEnabled) {
+            return // Không xử lý nhắc nhở nếu đã tắt toàn cục
+        }
+        
         val currentTime = Date()
         val activeReminders = reminderRepository.getActiveReminders()
         

@@ -26,6 +26,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Giữ nguyên package name cho bản release: quangan.sreminder
+        }
+        debug {
+            applicationIdSuffix = ".debug" // Thêm .debug vào package name cho bản debug: quangan.debug.sreminder
         }
     }
     compileOptions {
@@ -71,4 +75,5 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     implementation(libs.androidx.recyclerview) // Thêm dòng này
+    implementation("androidx.preference:preference-ktx:1.2.1") // Thêm preference library
 }

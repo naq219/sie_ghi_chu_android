@@ -18,7 +18,8 @@ import java.util.Locale
 class ReminderAdapter(
     private val onItemClick: (Note) -> Unit,
     private val onDeleteClick: (Note) -> Unit,
-    private val onCompleteClick: (Note, Reminder) -> Unit
+    private val onCompleteClick: (Note, Reminder) -> Unit,
+    private val onToggleReminderActive: (Reminder, Boolean) -> Unit
 ) : ListAdapter<Note, ReminderAdapter.ReminderViewHolder>(ReminderDiffCallback()) {
 
     private val reminderMap = mutableMapOf<String, List<Reminder>>()
@@ -46,6 +47,7 @@ class ReminderAdapter(
     inner class ReminderViewHolder(private val binding: ItemReminderBinding) : RecyclerView.ViewHolder(binding.root) {
         
         private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        private val dateFormatDisplay = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
         
         init {
             binding.root.setOnClickListener {
@@ -60,28 +62,34 @@ class ReminderAdapter(
             // Hiển thị nội dung nhắc nhở
             binding.textReminderContent.text = note.content
             
-            // Hiển thị thông tin phụ (loại nhắc nhở hoặc thông tin khác)
+            // Hiển thị thông tin loại nhắc nhở và thời gian nhắc nhở tiếp theo
             if (reminder != null) {
+                val nextReminderTime = if (reminder.remindAt != null) {
+                    dateFormatDisplay.format(reminder.remindAt)
+                } else {
+                    "Không có thời gian"
+                }
+                
                 val reminderInfo = when (reminder.repeatType) {
                     "interval" -> {
                         val seconds = reminder.repeatIntervalSeconds ?: 0
                         when {
-                            seconds < 60 -> "Lặp mỗi $seconds giây"
-                            seconds < 3600 -> "Lặp mỗi ${seconds / 60} phút"
-                            seconds < 86400 -> "Lặp mỗi ${seconds / 3600} giờ"
-                            else -> "Lặp mỗi ${seconds / 86400} ngày"
+                            seconds < 60 -> "Lặp mỗi $seconds giây - $nextReminderTime"
+                            seconds < 3600 -> "Lặp mỗi ${seconds / 60} phút - $nextReminderTime"
+                            seconds < 86400 -> "Lặp mỗi ${seconds / 3600} giờ - $nextReminderTime"
+                            else -> "Lặp mỗi ${seconds / 86400} ngày - $nextReminderTime"
                         }
                     }
                     "minutely" -> {
                         // Lấy repeatInterval từ Note
                         val minutes = note.repeatInterval
                         when {
-                            minutes < 60 -> "Lặp mỗi $minutes phút"
-                            minutes % 60 == 0L -> "Lặp mỗi ${minutes / 60} giờ"
+                            minutes < 60 -> "Lặp mỗi $minutes phút - $nextReminderTime"
+                            minutes % 60 == 0L -> "Lặp mỗi ${minutes / 60} giờ - $nextReminderTime"
                             else -> {
                                 val hours = minutes / 60
                                 val remainingMinutes = minutes % 60
-                                "Lặp mỗi ${hours}h${remainingMinutes}p"
+                                "Lặp mỗi ${hours}h${remainingMinutes}p - $nextReminderTime"
                             }
                         }
                     }
@@ -89,22 +97,36 @@ class ReminderAdapter(
                         // Lấy repeatInterval từ Note
                         val minutes = note.repeatInterval
                         when {
-                            minutes < 60 -> "Lặp mỗi $minutes phút"
-                            minutes % 60 == 0L -> "Lặp mỗi ${minutes / 60} giờ"
+                            minutes < 60 -> "Lặp mỗi $minutes phút - $nextReminderTime"
+                            minutes % 60 == 0L -> "Lặp mỗi ${minutes / 60} giờ - $nextReminderTime"
                             else -> {
                                 val hours = minutes / 60
                                 val remainingMinutes = minutes % 60
-                                "Lặp mỗi ${hours}h${remainingMinutes}p"
+                                "Lặp mỗi ${hours}h${remainingMinutes}p - $nextReminderTime"
                             }
                         }
                     }
-                    "solar_monthly" -> "Lặp hàng tháng (dương lịch)"
-                    "lunar_monthly" -> "Lặp hàng tháng (âm lịch)"
-                    else -> "Nhắc một lần"
+                    "daily" -> "Lặp 1 ngày - $nextReminderTime"
+                    "weekly" -> "Lặp 1 tuần - $nextReminderTime"
+                    "solar_monthly" -> "Lặp hàng tháng (dương lịch) - $nextReminderTime"
+                    "lunar_monthly" -> "Lặp hàng tháng (âm lịch) - $nextReminderTime"
+                    "solar_yearly" -> "Lặp hàng năm (dương lịch) - $nextReminderTime"
+                    "lunar_yearly" -> "Lặp hàng năm (âm lịch) - $nextReminderTime"
+                    else -> nextReminderTime // Nhắc một lần chỉ hiển thị thời gian
                 }
                 binding.textReminderTime.text = reminderInfo
+                
+                // Cài đặt trạng thái switch
+                binding.switchReminderEnabled.isChecked = reminder.isActive
+                
+                // Xử lý sự kiện khi switch thay đổi
+                binding.switchReminderEnabled.setOnCheckedChangeListener { _, isChecked ->
+                    onToggleReminderActive(reminder, isChecked)
+                }
             } else {
                 binding.textReminderTime.text = "Nhắc nhở"
+                binding.switchReminderEnabled.isChecked = false
+                binding.switchReminderEnabled.setOnCheckedChangeListener(null)
             }
         }
         

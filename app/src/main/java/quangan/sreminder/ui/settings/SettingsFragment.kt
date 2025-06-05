@@ -51,40 +51,70 @@ class SettingsFragment : Fragment() {
     }
     
     private fun setupViews() {
+        setupUserIdSection()
+        setupGitHubTokenSection()
+        setupGlobalReminderSection()
+        setupBatteryOptimizationSection()
+    }
+    
+    private fun setupUserIdSection() {
         // Load user ID từ SharedPreferences
         val savedUserId = sharedPreferences.getString("user_id", "")
         binding.editUserId.setText(savedUserId)
-        
+    }
+    
+    private fun setupGitHubTokenSection() {
         // Load GitHub token từ SharedPreferences
         val savedGithubToken = sharedPreferences.getString("github_token", "")
         binding.editGithubToken.setText(savedGithubToken)
-
+    }
+    
+    private fun setupGlobalReminderSection() {
+        // Load global reminder setting từ SharedPreferences
+        val globalRemindersEnabled = sharedPreferences.getBoolean("global_reminders_enabled", true)
+        binding.switchGlobalReminders.isChecked = globalRemindersEnabled
+    }
+    
+    private fun setupBatteryOptimizationSection() {
         // Load ignore battery optimizations setting
         val ignoreBatteryOptimizations = sharedPreferences.getBoolean("ignore_battery_optimizations", false)
         binding.switchIgnoreBatteryOptimizations.isChecked = ignoreBatteryOptimizations
     }
-    
+
     private fun setupClickListeners() {
-        // Lưu User ID
         binding.btnSaveUserId.setOnClickListener {
             val userId = binding.editUserId.text.toString().trim()
             if (userId.isNotEmpty()) {
-                sharedPreferences.edit().putString("user_id", userId).apply()
-                Toast.makeText(context, "Đã lưu User ID: $userId", Toast.LENGTH_SHORT).show()
+                sharedPreferences.edit()
+                    .putString("user_id", userId)
+                    .apply()
+                Toast.makeText(requireContext(), "User ID đã được lưu", Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(context, "Vui lòng nhập User ID", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Vui lòng nhập User ID", Toast.LENGTH_SHORT).show()
             }
         }
-        
-        // Lưu GitHub Token
+
         binding.btnSaveGithubToken.setOnClickListener {
             val githubToken = binding.editGithubToken.text.toString().trim()
             if (githubToken.isNotEmpty()) {
-                sharedPreferences.edit().putString("github_token", githubToken).apply()
-                Toast.makeText(context, "Đã lưu GitHub Token thành công", Toast.LENGTH_SHORT).show()
+                sharedPreferences.edit()
+                    .putString("github_token", githubToken)
+                    .apply()
+                Toast.makeText(requireContext(), "GitHub Token đã được lưu", Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(context, "Vui lòng nhập GitHub Token", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Vui lòng nhập GitHub Token", Toast.LENGTH_SHORT).show()
             }
+        }
+        
+        binding.switchGlobalReminders.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit()
+                .putBoolean("global_reminders_enabled", isChecked)
+                .apply()
+            Toast.makeText(
+                requireContext(), 
+                if (isChecked) "Đã bật tất cả nhắc nhở" else "Đã tắt tất cả nhắc nhở", 
+                Toast.LENGTH_SHORT
+            ).show()
         }
         
         // Backup dữ liệu
@@ -154,18 +184,25 @@ class SettingsFragment : Fragment() {
         }
 
         binding.switchIgnoreBatteryOptimizations.setOnCheckedChangeListener { _, isChecked ->
-            sharedPreferences.edit().putBoolean("ignore_battery_optimizations", isChecked).apply()
+            sharedPreferences.edit()
+                .putBoolean("ignore_battery_optimizations", isChecked)
+                .apply()
+            
             if (isChecked) {
-                val packageName = requireContext().packageName
-                val pm = requireContext().getSystemService(PowerManager::class.java) as PowerManager
-                if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-                    val intent = Intent().apply {
-                        action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                        data = Uri.parse("package:$packageName")
-                    }
-                    startActivity(intent)
-                }
+                requestIgnoreBatteryOptimizations()
             }
+        }
+    }
+    
+    private fun requestIgnoreBatteryOptimizations() {
+        val packageName = requireContext().packageName
+        val pm = requireContext().getSystemService(PowerManager::class.java) as PowerManager
+        if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+            val intent = Intent().apply {
+                action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                data = Uri.parse("package:$packageName")
+            }
+            startActivity(intent)
         }
     }
     
