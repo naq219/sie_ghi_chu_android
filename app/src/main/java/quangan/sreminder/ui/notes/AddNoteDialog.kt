@@ -127,6 +127,23 @@ class AddNoteDialog : DialogFragment() {
             showTimePicker()
         }
         
+        // Xử lý các tùy chọn thời gian nhanh
+        binding.text15Minutes.setOnClickListener {
+            setQuickTimeOption(15)
+        }
+        
+        binding.text30Minutes.setOnClickListener {
+            setQuickTimeOption(30)
+        }
+        
+        binding.text1Hour.setOnClickListener {
+            setQuickTimeOption(60)
+        }
+        
+        binding.text2Hours.setOnClickListener {
+            setQuickTimeOption(120)
+        }
+        
         // Xử lý hiển thị/ẩn các tùy chọn nhắc nhở dựa trên loại ghi chú
         binding.radioGroupNoteType.setOnCheckedChangeListener { _, checkedId ->
             val showReminderSettings = checkedId == R.id.radio_one_time_reminder || checkedId == R.id.radio_repeating_reminder
@@ -314,6 +331,41 @@ class AddNoteDialog : DialogFragment() {
         val timeText = if (selectedTime != null) timeFormat.format(selectedTime!!.time) else "Chọn giờ"
         
         binding.textSelectedDatetime.text = "$dateText - $timeText"
+    }
+    
+    /**
+     * Thiết lập thời gian nhanh dựa trên số phút từ thời điểm hiện tại
+     * @param minutes Số phút cần thêm vào thời gian hiện tại
+     */
+    private fun setQuickTimeOption(minutes: Int) {
+        // Đảm bảo đã chọn loại nhắc nhở
+        if (binding.radioGroupNoteType.checkedRadioButtonId == R.id.radio_regular_note) {
+            binding.radioOneTimeReminder.isChecked = true
+        }
+        
+        // Thiết lập ngày là ngày hiện tại nếu chưa chọn
+        if (selectedDate == null) {
+            selectedDate = Calendar.getInstance()
+        }
+        
+        // Thiết lập thời gian là thời gian hiện tại + số phút đã chọn
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.MINUTE, minutes)
+        
+        selectedTime = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, calendar.get(Calendar.HOUR_OF_DAY))
+            set(Calendar.MINUTE, calendar.get(Calendar.MINUTE))
+        }
+        
+        // Cập nhật hiển thị
+        updateDateTimeDisplay()
+        
+        // Hiển thị thông báo
+        Toast.makeText(
+            requireContext(), 
+            "Đã thiết lập nhắc nhở sau $minutes phút", 
+            Toast.LENGTH_SHORT
+        ).show()
     }
     
     // Phương thức để MainActivity gọi khi cần tự động lưu ghi chú
