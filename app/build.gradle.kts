@@ -26,10 +26,25 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Giữ nguyên package name cho bản release: quangan.sreminder
         }
         debug {
-            applicationIdSuffix = ".debug" // Thêm .debug vào package name cho bản debug: quangan.debug.sreminder
+            isDebuggable = true
+        }
+    }
+    
+    flavorDimensions += "version"
+    productFlavors {
+        create("sieuGhiChu") {
+            dimension = "version"
+            applicationId = "quangan.sreminder.sieuGhiChu"
+            versionNameSuffix = "-sieuGhiChu"
+            resValue("string", "app_name", "Siêu Ghi Chú")
+        }
+        create("noteDebug") {
+            dimension = "version"
+            applicationId = "quangan.sreminder.noteDebug"
+            versionNameSuffix = "-noteDebug"
+            resValue("string", "app_name", "Note Debug")
         }
     }
     compileOptions {
@@ -71,6 +86,10 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     
     testImplementation(libs.junit)
+    testImplementation("org.mockito:mockito-core:5.6.0")
+    testImplementation("org.mockito:mockito-inline:5.2.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 

@@ -136,6 +136,16 @@ class ReminderService : LifecycleService() {
     }
     
     private suspend fun createNextReminder(reminder: Reminder) {
+        // Nếu là reminder một lần, vô hiệu hóa sau khi kích hoạt
+        if (reminder.repeatType == "none" || reminder.repeatType.isNullOrEmpty()) {
+            val updatedReminder = reminder.copy(
+                isActive = false,
+                updatedAt = Date()
+            )
+            reminderRepository.update(updatedReminder)
+            return
+        }
+        
         val currentTime = Date()
         when (reminder.repeatType) {
             "interval" -> {

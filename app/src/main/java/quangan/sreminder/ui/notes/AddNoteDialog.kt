@@ -97,6 +97,11 @@ class AddNoteDialog : DialogFragment() {
                 3 -> binding.radioRepeatingReminder.isChecked = true
                 else -> binding.radioRegularNote.isChecked = true
             }
+            
+            // Load dữ liệu reminder nếu có
+            if (note.noteType == 2 || note.noteType == 3) {
+                loadReminderData(note)
+            }
         } ?: run {
             // Mặc định chọn ghi chú thường khi tạo mới
             binding.radioRegularNote.isChecked = true
@@ -396,29 +401,35 @@ class AddNoteDialog : DialogFragment() {
         }
         
         // Xác định loại lặp lại
-        var repeatType = when (binding.radioGroupRepeatType.checkedRadioButtonId) {
-            R.id.radio_interval_hours_minutes -> {
-                // Phân biệt minutely và hourly dựa trên input
-                val hours = binding.editHours.text.toString().toLongOrNull() ?: 0
-                val minutes = binding.editMinutes.text.toString().toLongOrNull() ?: 0
-                
-                if (hours > 0 && minutes > 0) {
-                    "minutely" // Có cả giờ và phút -> dùng minutely
-                } else if (hours > 0) {
-                    "hourly" // Chỉ có giờ -> dùng hourly
-                } else {
-                    "minutely" // Chỉ có phút -> dùng minutely
+        var repeatType = if (note.noteType == 2) {
+            // Đối với nhắc hẹn 1 lần (noteType = 2), không có lặp lại
+            "none"
+        } else {
+            // Đối với nhắc lặp (noteType = 3), xác định loại lặp lại
+            when (binding.radioGroupRepeatType.checkedRadioButtonId) {
+                R.id.radio_interval_hours_minutes -> {
+                    // Phân biệt minutely và hourly dựa trên input
+                    val hours = binding.editHours.text.toString().toLongOrNull() ?: 0
+                    val minutes = binding.editMinutes.text.toString().toLongOrNull() ?: 0
+                    
+                    if (hours > 0 && minutes > 0) {
+                        "minutely" // Có cả giờ và phút -> dùng minutely
+                    } else if (hours > 0) {
+                        "hourly" // Chỉ có giờ -> dùng hourly
+                    } else {
+                        "minutely" // Chỉ có phút -> dùng minutely
+                    }
                 }
+                R.id.radio_daily -> "daily"
+                R.id.radio_weekly -> "weekly"
+                R.id.radio_monthly -> {
+                    if (binding.radioLunarCalendar.isChecked) "lunar_monthly" else "solar_monthly"
+                }
+                R.id.radio_yearly -> {
+                    if (binding.radioLunarCalendar.isChecked) "lunar_yearly" else "solar_yearly"
+                }
+                else -> null
             }
-            R.id.radio_daily -> "daily"
-            R.id.radio_weekly -> "weekly"
-            R.id.radio_monthly -> {
-                if (binding.radioLunarCalendar.isChecked) "lunar_monthly" else "solar_monthly"
-            }
-            R.id.radio_yearly -> {
-                if (binding.radioLunarCalendar.isChecked) "lunar_yearly" else "solar_yearly"
-            }
-            else -> null
         }
         
         // Tính interval cho loại minutely/hourly (để tương thích với code cũ)
@@ -465,5 +476,58 @@ class AddNoteDialog : DialogFragment() {
         }
         
         Toast.makeText(requireContext(), "Đã tạo nhắc nhở thành công", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun loadReminderData(note: Note) {
+        // Load reminder data từ database
+        val viewModel = remindersViewModel ?: ViewModelProvider(requireActivity()).get(RemindersViewModel::class.java)
+        
+        // Observe reminders để lấy dữ liệu
+        viewModel.getRemindersByNoteId(note.id).observe(this) { reminders ->
+            val reminder = reminders.find { it.noteId == note.id }
+            reminder?.let { r ->
+                // Set thời gian reminder
+                r.remindAt?.let { remindTime ->
+                    val calendar = Calendar.getInstance()
+                    calendar.timeInMillis = remindTime.time
+                    selectedDate = calendar
+                    selectedTime = calendar
+                    updateDateTimeDisplay()
+                }
+                
+                // Set repeat type
+                when (r.repeatType) {
+                    "minutely" -> {
+                        binding.radioIntervalHoursMinutes.isChecked = true
+                        binding.editMinutes.setText((note.repeatInterval ?: 1).toString())
+                    }
+                    "hourly" -> {
+                        binding.radioIntervalHoursMinutes.isChecked = true
+                        binding.editHours.setText((note.repeatInterval ?: 1).toString())
+                    }
+                    "daily" -> binding.radioDaily.isChecked = true
+                    "weekly" -> binding.radioWeekly.isChecked = true
+                    "solar_monthly" -> {
+                        binding.radioMonthly.isChecked = true
+                        binding.radioSolarCalendar.isChecked = true
+                    }
+                    "lunar_monthly" -> {
+                        binding.radioMonthly.isChecked = true
+                        binding.radioLunarCalendar.isChecked = true
+                    }
+                    "solar_yearly" -> {
+                        binding.radioYearly.isChecked = true
+                        binding.radioSolarCalendar.isChecked = true
+                    }
+                    "lunar_yearly" -> {
+                        binding.radioYearly.isChecked = true
+                        binding.radioLunarCalendar.isChecked = true
+                    }
+                }
+                
+                // Set repeat day nếu có
+                // Note: editRepeatDay không có trong layout hiện tại
+            }
+        }
     }
 }

@@ -64,8 +64,15 @@ class ReminderAdapter(
             
             // Hiển thị thông tin loại nhắc nhở và thời gian nhắc nhở tiếp theo
             if (reminder != null) {
+                // Format thời gian khác nhau cho reminder một lần và lặp lại
+                val timeFormat = if (reminder.repeatType == "none" || reminder.repeatType.isNullOrEmpty()) {
+                    SimpleDateFormat("dd/MM/yyyy HH'h'mm", Locale.getDefault())
+                } else {
+                    SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                }
+                
                 val nextReminderTime = if (reminder.remindAt != null) {
-                    dateFormatDisplay.format(reminder.remindAt)
+                    timeFormat.format(reminder.remindAt)
                 } else {
                     "Không có thời gian"
                 }
@@ -116,12 +123,15 @@ class ReminderAdapter(
                 }
                 binding.textReminderTime.text = reminderInfo
                 
-                // Cài đặt trạng thái switch
+                // Cài đặt trạng thái switch với xử lý tốt hơn cho RecyclerView
+                binding.switchReminderEnabled.setOnCheckedChangeListener(null)
                 binding.switchReminderEnabled.isChecked = reminder.isActive
                 
                 // Xử lý sự kiện khi switch thay đổi
                 binding.switchReminderEnabled.setOnCheckedChangeListener { _, isChecked ->
-                    onToggleReminderActive(reminder, isChecked)
+                    if (isChecked != reminder.isActive) {
+                        onToggleReminderActive(reminder, isChecked)
+                    }
                 }
             } else {
                 binding.textReminderTime.text = "Nhắc nhở"
