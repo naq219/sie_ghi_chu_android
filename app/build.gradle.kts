@@ -2,7 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     kotlin("kapt")
-
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 android {
@@ -95,4 +96,9 @@ dependencies {
 
     implementation(libs.androidx.recyclerview) // Thêm dòng này
     implementation("androidx.preference:preference-ktx:1.2.1") // Thêm preference library
+    
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.analytics)
 }
