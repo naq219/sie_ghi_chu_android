@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
@@ -17,6 +18,7 @@ import quangan.sreminder.data.entity.Reminder
 import quangan.sreminder.data.repository.ReminderRepository
 import quangan.sreminder.data.repository.NoteRepository
 import quangan.sreminder.utils.LunarCalendarUtils
+import android.util.*
 import java.util.*
 import kotlin.math.abs
 
@@ -53,7 +55,7 @@ class ReminderService : LifecycleService() {
         val database = AppDatabase.getDatabase(this)
         reminderRepository = ReminderRepository(database.reminderDao())
         noteRepository = NoteRepository(database.noteDao())
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        sharedPreferences = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
         
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createForegroundNotification())
@@ -112,6 +114,7 @@ class ReminderService : LifecycleService() {
     private suspend fun checkAndTriggerReminders() {
         // Kiểm tra cài đặt toàn cục trước khi xử lý nhắc nhở
         val globalRemindersEnabled = sharedPreferences.getBoolean("global_reminders_enabled", true)
+        Log.d("ReminderService", "Global reminders enabled: $globalRemindersEnabled")
         if (!globalRemindersEnabled) {
             return // Không xử lý nhắc nhở nếu đã tắt toàn cục
         }
