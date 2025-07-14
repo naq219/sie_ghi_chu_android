@@ -123,6 +123,13 @@ class RemindersFragment : Fragment() {
         remindersViewModel.allReminderNotes.observe(viewLifecycleOwner) { notes ->
             reminderAdapter.submitList(notes)
             binding.textEmptyReminders.visibility = if (notes.isEmpty()) View.VISIBLE else View.GONE
+            
+            // Load reminders cho mỗi note
+            notes.forEach { note ->
+                remindersViewModel.getRemindersByNoteId(note.id).observe(viewLifecycleOwner) { reminders ->
+                    reminderAdapter.setReminders(note.id.toString(), reminders)
+                }
+            }
         }
     }
 

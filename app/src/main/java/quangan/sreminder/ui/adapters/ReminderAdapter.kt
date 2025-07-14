@@ -130,6 +130,16 @@ class ReminderAdapter(
                 // Xử lý sự kiện khi switch thay đổi
                 binding.switchReminderEnabled.setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked != reminder.isActive) {
+                        // Cập nhật trạng thái trong reminderMap ngay lập tức
+                        val updatedReminder = reminder.copy(isActive = isChecked)
+                        val noteId = note.id.toString()
+                        val currentReminders = reminderMap[noteId]?.toMutableList() ?: mutableListOf()
+                        val index = currentReminders.indexOfFirst { it.id == reminder.id }
+                        if (index != -1) {
+                            currentReminders[index] = updatedReminder
+                            reminderMap[noteId] = currentReminders
+                        }
+                        
                         onToggleReminderActive(reminder, isChecked)
                     }
                 }

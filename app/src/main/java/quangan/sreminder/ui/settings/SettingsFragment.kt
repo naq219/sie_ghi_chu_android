@@ -1,24 +1,25 @@
-// Khởi tạo SharedPreferences
-private lateinit var sharedPreferences: SharedPreferences
-sharedPreferences = requireContext().getSharedPreferences("app_settings", 0)
-
-// Setup switch state từ SharedPreferences
-private fun setupGlobalReminderSection() {
-    val globalRemindersEnabled = sharedPreferences.getBoolean("global_reminders_enabled", true)
-    binding.switchGlobalReminders.isChecked = globalRemindersEnabled
-}
-
-// Xử lý sự kiện toggle switch
-binding.switchGlobalReminders.setOnCheckedChangeListener { _, isChecked ->
-    sharedPreferences.edit()
-        .putBoolean("global_reminders_enabled", isChecked)
-        .apply()
-    Toast.makeText(
-        requireContext(), 
-        if (isChecked) "Đã bật tất cả nhắc nhở" else "Đã tắt tất cả nhắc nhở", 
-        Toast.LENGTH_SHORT
-    ).show()
-}package quangan.sreminder.ui.settings
+//// Khởi tạo SharedPreferences
+//private lateinit var sharedPreferences: SharedPreferences
+//sharedPreferences = requireContext().getSharedPreferences("app_settings", 0)
+//
+//// Setup switch state từ SharedPreferences
+//private fun setupGlobalReminderSection() {
+//    val globalRemindersEnabled = sharedPreferences.getBoolean("global_reminders_enabled", true)
+//    binding.switchGlobalReminders.isChecked = globalRemindersEnabled
+//}
+//
+//// Xử lý sự kiện toggle switch
+//binding.switchGlobalReminders.setOnCheckedChangeListener { _, isChecked ->
+//    sharedPreferences.edit()
+//        .putBoolean("global_reminders_enabled", isChecked)
+//        .apply()
+//    Toast.makeText(
+//        requireContext(),
+//        if (isChecked) "Đã bật tất cả nhắc nhở" else "Đã tắt tất cả nhắc nhở",
+//        Toast.LENGTH_SHORT
+//    ).show()
+//}
+package quangan.sreminder.ui.settings
 
 import android.content.Intent
 import android.content.SharedPreferences
