@@ -52,13 +52,13 @@ class ReminderService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
         
+        createNotificationChannel()
+        startForeground(NOTIFICATION_ID, createForegroundNotification())
+        
         val database = AppDatabase.getDatabase(this)
         reminderRepository = ReminderRepository(database.reminderDao())
         noteRepository = NoteRepository(database.noteDao())
         sharedPreferences = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-        
-        createNotificationChannel()
-        startForeground(NOTIFICATION_ID, createForegroundNotification())
         
         startReminderCheck()
     }
@@ -66,6 +66,7 @@ class ReminderService : LifecycleService() {
     override fun onDestroy() {
         super.onDestroy()
         checkJob?.cancel()
+        stopForeground(true)
     }
     
     override fun onBind(intent: Intent): IBinder? {
