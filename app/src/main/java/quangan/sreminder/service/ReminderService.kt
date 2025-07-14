@@ -33,6 +33,7 @@ class ReminderService : LifecycleService() {
         private const val NOTIFICATION_ID = 1001
         private const val CHANNEL_ID = "reminder_channel"
         private const val CHECK_INTERVAL = 30000L // 30 giây
+        private const val ACTION_TOGGLE_REMINDERS = "quangan.sreminder.TOGGLE_REMINDERS"
         
         fun startService(context: Context) {
             val intent = Intent(context, ReminderService::class.java)
@@ -52,13 +53,14 @@ class ReminderService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
         
+        sharedPreferences = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+        
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createForegroundNotification())
         
         val database = AppDatabase.getDatabase(this)
         reminderRepository = ReminderRepository(database.reminderDao())
         noteRepository = NoteRepository(database.noteDao())
-        sharedPreferences = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
         
         startReminderCheck()
     }
@@ -67,6 +69,24 @@ class ReminderService : LifecycleService() {
         super.onDestroy()
         checkJob?.cancel()
         stopForeground(true)
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent != null && ACTION_TOGGLE_REMINDERS == intent.action) {
+            toggleReminders()
+            updateNotification()
+        }
+        return super.onStartCommand(intent, flags, startId)
+    }
+
+    private fun toggleReminders() {
+        val current = sharedPreferences.getBoolean("global_reminders_enabled", true)
+        sharedPreferences.edit().putBoolean("global_reminders_enabled", !current).apply()
+    }
+
+    private fun updateNotification() {
+        val notification = createForegroundNotification()
+        startForeground(NOTIFICATION_ID, notification)
     }
     
     override fun onBind(intent: Intent): IBinder? {
@@ -90,12 +110,26 @@ class ReminderService : LifecycleService() {
     }
     
     private fun createForegroundNotification(): Notification {
+        val enabled = sharedPreferences.getBoolean("global_reminders_enabled", true)
+        val statusText = if (enabled) "Bật" else "Tắt"
+        val statusTextNguoc = if (enabled) "Tắt" else "Bật"
+
+        val toggleIntent = Intent(this, ReminderService::class.java)
+        toggleIntent.action = ACTION_TOGGLE_REMINDERS
+        val pendingIntent = PendingIntent.getService(
+            this,
+            0,
+            toggleIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Dịch vụ nhắc nhở")
-            .setContentText("Đang chạy ngầm để kiểm tra nhắc nhở")
+            .setContentText("Đang $statusText thông báo. 👉 click để $statusTextNguoc")
             .setSmallIcon(R.drawable.ic_notification)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
+            .setContentIntent(pendingIntent)
             .build()
     }
     
