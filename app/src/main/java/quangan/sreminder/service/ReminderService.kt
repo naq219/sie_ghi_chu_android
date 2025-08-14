@@ -17,6 +17,7 @@ import quangan.sreminder.data.AppDatabase
 import quangan.sreminder.data.entity.Reminder
 import quangan.sreminder.data.repository.ReminderRepository
 import quangan.sreminder.data.repository.NoteRepository
+import quangan.sreminder.receiver.NotificationBroadcastReceiver
 import quangan.sreminder.utils.LunarCalendarUtils
 import android.util.*
 import java.util.*
@@ -305,14 +306,13 @@ class ReminderService : LifecycleService() {
     }
     
     private suspend fun showReminderNotification(reminder: Reminder) {
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        
         // Lấy nội dung ghi chú
         val note = noteRepository.getNoteById(reminder.noteId)
         val noteContent = note?.content ?: "Đã đến lúc nhắc nhở của bạn!"
         
-        // Tạo channel cho thông báo nhắc nhở
+        // Tạo channel cho thông báo nhắc nhở (vẫn cần thiết cho ứng dụng chính)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val channel = NotificationChannel(
                 "reminder_alerts",
                 "Nhắc nhở",
@@ -325,15 +325,13 @@ class ReminderService : LifecycleService() {
             notificationManager.createNotificationChannel(channel)
         }
         
-        val notification = NotificationCompat.Builder(this, "reminder_alerts")
-            .setContentTitle("Nhắc nhở")
-            .setContentText(noteContent)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-            .setDefaults(NotificationCompat.DEFAULT_ALL)
-            .build()
-        
-        notificationManager.notify(reminder.id.hashCode(), notification)
+        // Sử dụng NotificationBroadcastReceiver để gửi thông báo theo thứ tự luân phiên
+        // giữa ứng dụng chính và các ứng dụng con
+        NotificationBroadcastReceiver.sendNotificationBroadcast(
+            context = this,
+            title = "Nhắc nhở",
+            content = noteContent,
+            notificationId = reminder.id.hashCode()
+        )
     }
 }
