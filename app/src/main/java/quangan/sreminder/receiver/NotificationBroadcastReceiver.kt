@@ -25,14 +25,16 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
 
         // Danh sách các package name của ứng dụng con
 
-
+        var nextIndex=0
+        var countShow=1
         // Key để lưu trữ index của ứng dụng hiển thị thông báo cuối cùng
         private const val PREF_LAST_NOTIFICATION_APP_INDEX = "last_notification_app_index"
         private const val PREF_NAME = "notification_rotation_prefs"
         private var SUB_APP_PACKAGES: List<String> = listOf() // Initialize as empty or with a default
         fun updateSubAppPackages(context: Context, packages: List<String>) {
-            SUB_APP_PACKAGES = packages
-            Log.d("NotificationBroadcast", "Updated sub-app packages: $packages")
+            SUB_APP_PACKAGES = packages +"chinhlatoi"
+
+            Log.d("NotificationBroadcast 5", "Updated sub-app packages: $SUB_APP_PACKAGES")
             // Optionally, you might want to persist this list in SharedPreferences
             // if ReminderService doesn't run every time a notification is sent.
             // For simplicity, this example keeps it in memory.
@@ -48,23 +50,26 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
             content: String,
             notificationId: Int
         ) {
-            val sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-            val lastIndex = sharedPreferences.getInt(PREF_LAST_NOTIFICATION_APP_INDEX, -1)
+           // val sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            //val lastIndex = sharedPreferences.getInt(PREF_LAST_NOTIFICATION_APP_INDEX, -1)
 
             // Tính toán index tiếp theo
-            val nextIndex = getNextAppIndex(lastIndex)
+           // val nextIndex = getNextAppIndex(lastIndex)
 
             // Lưu index mới
-            sharedPreferences.edit().putInt(PREF_LAST_NOTIFICATION_APP_INDEX, nextIndex).apply()
+           // sharedPreferences.edit().putInt(PREF_LAST_NOTIFICATION_APP_INDEX, nextIndex).apply()
 
             // Xác định package name của ứng dụng sẽ hiển thị thông báo
-            val targetPackage = if (nextIndex == -1) {
-                // Ứng dụng chính
-                context.packageName
-            } else {
-                // Ứng dụng con
-                SUB_APP_PACKAGES[nextIndex]
+            val targetPackage = SUB_APP_PACKAGES[nextIndex]
+            Log.d("NotificationBroadcast targetPackage naq",targetPackage)
+            nextIndex=nextIndex+1
+            if (nextIndex >= SUB_APP_PACKAGES.size)  nextIndex=0
+            if (targetPackage=="chinhlatoi"){
+                showNotificationInternal(context, title+" "+countShow, content, notificationId)
+                return // Không gửi broadcast nếu là ứng dụng chính
             }
+
+
 
             Log.d("NotificationBroadcast", "Gửi thông báo đến: $targetPackage")
 
@@ -77,6 +82,36 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
 
             // Gửi broadcast
             context.sendBroadcast(intent)
+        }
+
+
+        private fun showNotificationInternal(context: Context, title: String, content: String, notificationId: Int) {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channel = NotificationChannel(
+                    "reminder_alerts",
+                    "Nhắc nhở",
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = "Thông báo nhắc nhở"
+                    enableVibration(true)
+                    setShowBadge(true)
+                }
+                notificationManager.createNotificationChannel(channel)
+            }
+
+            val notification = NotificationCompat.Builder(context, "reminder_alerts")
+                .setContentTitle(title)
+                .setContentText(content)
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                .build()
+
+            notificationManager.notify(notificationId, notification)
+            Log.d("NotificationBroadcast", "Hiển thị thông báo (nội bộ): $title - $content")
         }
 
         /**
