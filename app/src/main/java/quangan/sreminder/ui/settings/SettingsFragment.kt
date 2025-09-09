@@ -21,20 +21,28 @@
 //}
 package quangan.sreminder.ui.settings
 
+import android.app.PendingIntent
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.ShortcutInfo
+import android.graphics.drawable.Icon
 import android.os.PowerManager
 import android.provider.Settings
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import quangan.sreminder.MainActivity
+import quangan.sreminder.R
 import quangan.sreminder.databinding.FragmentSettingsBinding
 import quangan.sreminder.utils.BackupManager
 import quangan.sreminder.utils.ShortcutManager
@@ -197,7 +205,7 @@ class SettingsFragment : Fragment() {
         // Tạo shortcut
         binding.btnCreateShortcut.setOnClickListener {
             try {
-                shortcutManager.createNoteShortcut()
+                createPinnedShortcut()
                 Toast.makeText(context, "Đã tạo shortcut thành công!", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(context, "Lỗi tạo shortcut: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -214,7 +222,37 @@ class SettingsFragment : Fragment() {
             }
         }
     }
-    
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createPinnedShortcut() {
+        val shortcutManager = requireContext().getSystemService(android.content.pm.ShortcutManager::class.java)
+
+        if (shortcutManager.isRequestPinShortcutSupported) {
+            val shortcutInfo = ShortcutInfo.Builder(requireContext(), "pinned_note")
+                .setShortLabel("Tạo ghi chú")
+                .setLongLabel("Mở nhanh tạo ghi chú")
+                .setIcon(Icon.createWithResource(requireContext(), R.drawable.ic_launcher_foreground))
+                .setIntent(Intent(requireContext(), MainActivity::class.java).apply {
+                    action = "CREATE_NOTE_SHORTCUT"
+                    // Sử dụng FLAG_ACTIVITY_SINGLE_TOP thay vì CLEAR_TOP
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    // Thêm extra để đảm bảo intent được coi là "mới"
+                    putExtra("timestamp", System.currentTimeMillis())
+                })
+                .build()
+
+            val pinnedShortcutCallbackIntent = shortcutManager.createShortcutResultIntent(shortcutInfo)
+
+            val successCallback = PendingIntent.getBroadcast(
+                requireContext(), 0, pinnedShortcutCallbackIntent, PendingIntent.FLAG_IMMUTABLE
+            )
+
+            shortcutManager.requestPinShortcut(shortcutInfo, successCallback.intentSender)
+        }
+    }
+
+
     private fun requestIgnoreBatteryOptimizations() {
         val packageName = requireContext().packageName
         val pm = requireContext().getSystemService(PowerManager::class.java) as PowerManager

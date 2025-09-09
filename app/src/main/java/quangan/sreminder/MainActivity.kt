@@ -18,8 +18,15 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
+
+    override fun onResume() {
+        super.onResume()
+        logIntent(intent)
+
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        logIntent(intent)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -46,6 +53,7 @@ class MainActivity : AppCompatActivity() {
         if (intent?.action == "CREATE_NOTE_SHORTCUT") {
             // Hiển thị dialog tạo ghi chú từ shortcut
             val addNoteDialog = AddNoteDialog.newInstance(null, useRemindersViewModel = false)
+
             addNoteDialog.show(supportFragmentManager, "AddNoteDialog")
         }
     }
@@ -58,10 +66,37 @@ class MainActivity : AppCompatActivity() {
     
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+        logIntent(intent)
+
         setIntent(intent)
         checkShortcutIntent()
     }
-    
+
+    private fun logIntent(intent: Intent?) {
+        if (intent == null) {
+            android.util.Log.d("naq", "Intent is null")
+            return
+        }
+
+        val sb = StringBuilder()
+        sb.append("Action: ${intent.action}\n")
+        sb.append("Data: ${intent.data}\n")
+        sb.append("Flags: ${intent.flags}\n")
+
+        val extras = intent.extras
+        if (extras != null) {
+            sb.append("Extras:\n")
+            for (key in extras.keySet()) {
+                sb.append("  $key = ${extras[key]}\n")
+            }
+        } else {
+            sb.append("Extras: null\n")
+        }
+
+        android.util.Log.d("IntentLog", sb.toString())
+    }
+
+
     override fun onPause() {
         super.onPause()
         // Tự động lưu ghi chú khi người dùng bấm nút home hoặc thoát ứng dụng
